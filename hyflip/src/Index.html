@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root { --navy:#0e3a74; --line:#d9dee7; --soft:#f4f6fa; --warn:#b42318; --ok:#127a3e; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif; color:#1d2433; background:#eef1f6; font-size:15px; line-height:1.6; }
+  header { background:var(--navy); color:#fff; padding:18px 24px; }
+  header h1 { margin:0; font-size:19px; }
+  header .sub { font-size:13px; opacity:.85; margin-top:2px; }
+  main { max-width:920px; margin:24px auto 80px; padding:0 16px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:24px; margin-bottom:16px; }
+  h2 { font-size:18px; margin:0 0 14px; color:var(--navy); }
+  h3 { font-size:15px; margin:20px 0 8px; }
+  .steps { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .steps span { flex:1; min-width:110px; text-align:center; font-size:12.5px; padding:8px 4px; border-radius:8px; background:#fff; border:1px solid var(--line); color:#6b7487; }
+  .steps span.on { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .steps span.done { color:var(--navy); border-color:var(--navy); }
+  label { display:block; font-weight:600; font-size:13.5px; margin:14px 0 4px; }
+  label .req { color:var(--warn); margin-left:2px; }
+  .hint { font-size:12.5px; color:#6b7487; margin-top:3px; }
+  input[type=text], input[type=email], input[type=number], select, textarea { width:100%; padding:9px 11px; border:1px solid #c5ccd8; border-radius:8px; font:inherit; background:#fff; }
+  textarea { min-height:90px; resize:vertical; }
+  input:disabled, select:disabled, textarea:disabled { background:var(--soft); color:#4a5163; }
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:0 16px; }
+  .grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:0 16px; }
+  @media (max-width:640px){ .grid,.grid3 { grid-template-columns:1fr; } }
+  .btns { display:flex; gap:8px; justify-content:space-between; margin-top:22px; flex-wrap:wrap; }
+  button { font:inherit; padding:10px 18px; border-radius:8px; border:1px solid var(--navy); background:#fff; color:var(--navy); cursor:pointer; }
+  button.primary { background:var(--navy); color:#fff; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  button.link { border:none; padding:4px 6px; text-decoration:underline; }
+  .notice { background:var(--soft); border-left:4px solid var(--navy); padding:12px 16px; border-radius:6px; font-size:13.5px; }
+  .notice.warn { border-color:var(--warn); background:#fff4f2; }
+  .notice.ok { border-color:var(--ok); background:#effaf3; }
+  .rules li { margin-bottom:6px; font-size:13.5px; }
+  .check { display:flex; gap:10px; align-items:flex-start; margin:10px 0; font-weight:400; }
+  .check input { margin-top:5px; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  th, td { border:1px solid var(--line); padding:8px; text-align:left; vertical-align:top; }
+  th { background:var(--soft); }
+  .results { border:1px solid var(--line); border-radius:8px; max-height:240px; overflow:auto; margin-top:6px; }
+  .results div { padding:8px 12px; border-bottom:1px solid var(--line); cursor:pointer; font-size:13.5px; }
+  .results div:hover { background:var(--soft); }
+  details { border:1px solid var(--line); border-radius:8px; margin-bottom:8px; background:#fff; }
+  details summary { padding:10px 14px; cursor:pointer; font-weight:600; }
+  details .body { padding:0 14px 14px; }
+  details.fixed summary { color:#6b7487; }
+  .sum { font-weight:700; }
+  .sum.bad { color:var(--warn); } .sum.good { color:var(--ok); }
+  .errors li { color:var(--warn); }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#1d2433; color:#fff; padding:10px 18px; border-radius:8px; font-size:13.5px; display:none; z-index:9; }
+  .badge { display:inline-block; font-size:12px; padding:2px 8px; border-radius:10px; background:var(--soft); border:1px solid var(--line); }
+  .loading { text-align:center; color:#6b7487; padding:40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>HY FLIP 플립러닝 콘텐츠 개발 신청</h1>
+  <div class="sub" id="hdrSub">불러오는 중…</div>
+</header>
+<main id="app"><div class="loading">불러오는 중입니다…</div></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const STEPS = ['안내·동의', '기본정보', '교과목 개요', '운영 전략', '주차별 설계', '확인·제출'];
+const CREDIT_PLANS = ['2학점(온1+오1)', '3학점(온1.5+오1.5)', '3학점(온1+오2)', '4학점(온2+오2)'];
+let INIT = null;
+// 주차 유형: 영상(플립) / 오프라인 / 시험 / 없음(운영 안 함)
+const WEEK_TYPES = ['영상', '오프라인', '시험', '없음'];
+const WEEK_LABEL = { '영상': '영상(플립)', '오프라인': '오프라인 수업', '시험': '시험·평가', '없음': '운영 안 함' };
+function weekType(w, i) { return (w && WEEK_TYPES.indexOf(w.type) > -1) ? w.type : ((i === 7 || i === 15) ? '시험' : '영상'); }
+function videoCount(d) { return (d.weeks || []).filter((w, i) => weekType(w, i) === '영상').length; }
+function needsTopic(w, i) { const t = weekType(w, i); return t === '영상' || t === '오프라인'; }
+const S = { view: 'home', step: 0, id: null, data: null, editable: true, submitted: false, busy: false };
+
+/* ---------- 유틸 ---------- */
+function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function get(obj, path) { return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj); }
+function set(obj, path, val) {
+  const ks = path.split('.'); let o = obj;
+  for (let i = 0; i < ks.length - 1; i++) { if (o[ks[i]] == null) o[ks[i]] = isNaN(ks[i + 1]) ? {} : []; o = o[ks[i]]; }
+  o[ks[ks.length - 1]] = val;
+}
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 2600); }
+function call(fn, ...args) {
+  return new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(err => rej(err))[fn](...args));
+}
+function dis() { return S.editable ? '' : 'disabled'; }
+function inp(path, opt = {}) {
+  const v = get(S.data, path);
+  const type = opt.type || 'text';
+  return `<input type="${type}" data-p="${path}" value="${esc(v)}" ${opt.ph ? `placeholder="${esc(opt.ph)}"` : ''} ${opt.min != null ? `min="${opt.min}"` : ''} ${dis()}>`;
+}
+function area(path, ph) { return `<textarea data-p="${path}" ${ph ? `placeholder="${esc(ph)}"` : ''} ${dis()}>${esc(get(S.data, path))}</textarea>`; }
+function sel(path, options) {
+  const v = get(S.data, path) || '';
+  return `<select data-p="${path}" ${dis()}><option value="">선택</option>${options.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+}
+function field(title, html, req, hint) {
+  return `<label>${title}${req ? '<span class="req">*</span>' : ''}</label>${html}${hint ? `<div class="hint">${hint}</div>` : ''}`;
+}
+
+function blankData() {
+  const weeks = [];
+  for (let i = 1; i <= 16; i++) weeks.push({ no: i, type: (i === 8 || i === 16) ? '시험' : '영상', topic: i === 8 ? '중간고사' : i === 16 ? '기말고사' : '', pre: '', intro: '', deep: '', wrap1: '', wrap2: '', minutes: '' });
+  return {
+    consent: { required: false, optional: false, at: '' },
+    basic: { semester: INIT.semester, courseManual: false },
+    overview: {}, strategy: { evalItems: INIT.evalDefault.map(x => ({ name: x.name, pct: x.pct, desc: '' })) },
+    weeks: weeks
+  };
+}
+
+/* ---------- 시작 ---------- */
+call('getInitData').then(d => {
+  INIT = d;
+  document.getElementById('hdrSub').textContent = `${d.semester}학기 모집 · 신청기간 ${d.start} ~ ${d.deadline} · ${d.email}`;
+  render();
+}).catch(e => { document.getElementById('app').innerHTML = `<div class="card notice warn">${esc(e.message || e)}</div>`; });
+
+function render() {
+  const app = document.getElementById('app');
+  if (S.view === 'home') { app.innerHTML = homeView(); return; }
+  if (S.view === 'done') { app.innerHTML = doneView(); return; }
+  const stepBar = `<div class="steps">${STEPS.map((s, i) => `<span class="${i === S.step ? 'on' : i < S.step ? 'done' : ''}">${i + 1}. ${s}</span>`).join('')}</div>`;
+  const views = [step0, step1, step2, step3, step4, step5];
+  const ro = S.editable ? '' : `<div class="notice warn" style="margin-bottom:12px">현재 수정할 수 없는 상태입니다. 내용 확인만 가능합니다.</div>`;
+  app.innerHTML = stepBar + ro + `<div class="card">${views[S.step]()}${navButtons()}</div>`;
+  bind();
+}
+
+/* ---------- 홈 ---------- */
+function homeView() {
+  const rows = INIT.apps.map(a => `<tr>
+      <td>${esc(a.id.indexOf('TMP-') === 0 ? '(미제출)' : a.id)}</td><td>${esc(a.course)}</td>
+      <td><span class="badge">${esc(a.status)}</span></td><td>${esc(a.savedAt)}</td>
+      <td><button class="link" onclick="openApp('${esc(a.id)}')">${a.editable ? '열기·수정' : '보기'}</button>
+      ${a.pdf ? ` <a href="${esc(a.pdf)}" target="_blank">PDF</a>` : ''}</td></tr>`).join('');
+  return `<div class="card">
+    <h2>${esc(INIT.semester)}학기 플립러닝(Smart-F / Smart-B) 콘텐츠 개발 신청</h2>
+    ${INIT.open ? `<div class="notice">신청 마감: <b>${esc(INIT.deadline)}</b>. 작성 중 언제든 임시저장할 수 있고, 마감 전까지 제출한 신청서를 수정할 수 있습니다.</div>`
+                : `<div class="notice warn">지금은 신청기간이 아닙니다(${esc(INIT.start)} ~ ${esc(INIT.deadline)}). 보완 요청을 받은 신청서만 수정할 수 있습니다.</div>`}
+    <div class="btns"><span></span><button class="primary" ${INIT.open ? '' : 'disabled'} onclick="newApp()">새 신청서 작성</button></div>
+  </div>
+  <div class="card"><h2>내 신청서</h2>
+    ${INIT.apps.length ? `<table><tr><th>접수번호</th><th>과목명</th><th>상태</th><th>저장일시</th><th></th></tr>${rows}</table>` : '<div class="hint">아직 작성한 신청서가 없습니다.</div>'}
+    <div class="hint" style="margin-top:12px">문의: ${esc(INIT.contact)}</div>
+  </div>`;
+}
+function newApp() { Object.assign(S, { view: 'form', step: 0, id: null, data: blankData(), editable: true, submitted: false }); render(); }
+function openApp(id) {
+  document.getElementById('app').innerHTML = '<div class="loading">신청서를 불러오는 중…</div>';
+  call('loadApp', id).then(r => {
+    const base = blankData();
+    const d = Object.assign(base, r.data || {});
+    (d.weeks || []).forEach((w, i) => { if (w) w.type = weekType(w, i); });   // 예전 저장본: 8·16주차 시험, 나머지 영상
+    Object.assign(S, { view: 'form', step: r.submitted ? 0 : Math.min(r.step || 0, 5), id: r.id, data: d, editable: r.editable, submitted: r.submitted });
+    render();
+  }).catch(e => { toast(e.message || e); S.view = 'home'; render(); });
+}
+
+/* ---------- 단계별 화면 ---------- */
+function step0() {
+  return `<h2>사업 안내와 동의</h2>
+  <div class="notice"><b>개발기간</b> ${esc(INIT.devPeriod)} · <b>제출 방법</b> 온라인 제출 후 출력한 신청서에 서명하여 소속 단과대학 RC 행정팀 경유 공문으로 제출</div>
+  <h3>준수사항</h3>
+  <ul class="rules">
+    <li>온라인 선행학습 후 15주 이상 강의실 출석 수업을 진행하며, Smart-F는 동영상 ${INIT.minWeeks['Smart-F']}주차 이상, Smart-B는 ${INIT.minWeeks['Smart-B']}주차 이상(중간·기말 제외)과 학습활동(토론, 퀴즈, 학습정리, 키워드체크, 학습자료 등)을 제공합니다.</li>
+    <li>개발된 콘텐츠는 최소 2년 이상(4회 학기) 과목 개설을 권장하며, 수업운영(질의응답·시험·과제·채점 등)을 성실히 수행합니다.</li>
+    <li>최초 신규 개발 교수자는 수업설계, 교안작성, 동영상 개발 방법 컨설팅을 받기를 권고합니다.</li>
+    <li>기 개발 콘텐츠는 수정·편집·재촬영으로 보완할 수 있으며, 3년이 지난 콘텐츠는 전면 재개발을 권장합니다.</li>
+    <li>외부 제작 콘텐츠는 저작권·초상권에 위배되지 않는 범위에서 활용할 수 있으며, 이에 대한 책임은 콘텐츠 개발자에게 있습니다.</li>
+    <li>개발 완료된 콘텐츠의 저작권은 한양대학교에 귀속되며, 총장의 승인 없이 외부에 공개·유포할 수 없습니다.</li>
+  </ul>
+  <h3>개인정보 수집·이용 동의</h3>
+  <table>
+    <tr><th style="width:26%">수집·이용 목적</th><td>플립러닝 콘텐츠 개발 신청 접수·선정, 개발 지원 안내, 셀프스튜디오 예약 관리, 개발 이력·재개발 대상 관리</td></tr>
+    <tr><th>수집 항목</th><td>필수: 성명, 소속, 직위, 이메일 / 선택: 휴대폰 번호</td></tr>
+    <tr><th>보유·이용 기간</th><td>개인정보(연락처·이메일)는 해당 학기 종료일로부터 2년, 개발 이력(학기·과목·개발구분·선정 결과)은 10년 보관 후 지체 없이 파기</td></tr>
+    <tr><th>동의 거부 권리</th><td>동의를 거부할 수 있으나, 필수 항목에 동의하지 않으면 신청이 접수되지 않습니다. 선택 항목은 동의하지 않아도 신청할 수 있습니다.</td></tr>
+  </table>
+  <label class="check"><input type="checkbox" data-p="consent.required" ${S.data.consent.required ? 'checked' : ''} ${dis()}> <span><b>[필수]</b> 위 준수사항과 개인정보(필수 항목) 수집·이용에 동의합니다.</span></label>
+  <label class="check"><input type="checkbox" data-p="consent.optional" ${S.data.consent.optional ? 'checked' : ''} ${dis()}> <span>[선택] 휴대폰 번호 수집·이용에 동의합니다.</span></label>
+  <h3>신청 계정</h3>
+  <div class="notice">책임교수님 본인 계정으로만 신청할 수 있습니다(대리신청 불가). 현재 로그인 계정: <b>${esc(INIT.email)}</b><br>
+  접수·선정 결과 메일과 신청서 PDF는 이 계정으로 갑니다. 본인 계정이 아니면 로그아웃 후 책임교수님 계정으로 다시 접속해 주세요.</div>`;
+}
+
+function step1() {
+  const b = S.data.basic;
+  const minW = INIT.minWeeks[b.classType] || null;
+  return `<h2>기본정보</h2>
+  ${S.editable ? `${field('개설과목 검색', `<input type="text" id="q" placeholder="학수번호, 과목명 또는 담당교수로 검색 (2자 이상)">`, false, '목록에서 고르면 과목 정보가 자동으로 채워집니다.')}
+  <div class="results" id="qres" style="display:none"></div>
+  <label class="check"><input type="checkbox" data-p="basic.courseManual" ${b.courseManual ? 'checked' : ''}> <span>목록에 과목이 없어 직접 입력합니다(담당자가 확인합니다).</span></label>` : ''}
+  <div class="grid3">
+    ${field('학수번호', inp('basic.courseCode'), true)}${field('분반', inp('basic.section'))}${field('권장학년', inp('basic.grade'))}
+  </div>
+  <div class="grid">
+    ${field('과목명(한글)', inp('basic.nameKo'), true)}${field('과목명(영문)', inp('basic.nameEn'), true)}
+    ${field('개설학과', inp('basic.dept'), true)}${field('전공구분', sel('basic.majorType', ['전공필수', '전공선택', '전공기초', '교양', '기타']))}
+    ${field('이수학점', inp('basic.credits', { type: 'number', min: 0 }))}
+  </div>
+  <h3>교과목 개발 책임자</h3>
+  <div class="grid">
+    ${field('성명', inp('basic.prof'), true)}${field('직위', inp('basic.position', { ph: '예: 교수, 부교수, 조교수' }), true)}
+    ${field('소속', inp('basic.org'), true)}${field('휴대폰(선택)', inp('basic.phone', { ph: '010-0000-0000' }), false, S.data.consent.optional ? '' : '선택 동의를 하지 않으면 저장되지 않습니다.')}
+  </div>
+  <h3>개발 조건</h3>
+  <div class="grid">
+    ${field('수업유형', sel('basic.classType', ['Smart-F', 'Smart-B']), true, 'Smart-F: 주차당 영상 25분 이상이면 강의 시수 1시간, 40분 이상이면 1.5시간 인정 · Smart-B: 주차당 75분 이상, 100% 온라인')}
+    ${field('학점 구성', sel('basic.creditPlan', CREDIT_PLANS), true)}
+    ${field('개발구분', sel('basic.devType', ['신규', '수정·보완', '재개발']), true)}
+    ${field('영상 개발 주차 수', `<input type="text" id="videoWeeksAuto" value="${videoCount(S.data)}주 (주차별 설계에서 자동 계산)" disabled>`, false, minW ? `${esc(b.classType)}는 ${minW}주 이상(시험·오프라인 주차 제외). 주차별 설계 단계에서 주차마다 유형을 고릅니다.` : '수업유형을 먼저 고르세요.')}
+    ${field('촬영방식', sel('basic.shootType', ['셀프스튜디오', '연구실', '기타']), true)}
+    ${field('개발기간', `<input type="text" value="${esc(INIT.devPeriod)}" disabled>`)}
+  </div>`;
+}
+
+function step2() {
+  return `<h2>교과목 개요</h2>
+  ${field('1. 교육목적 및 필요성', area('overview.purpose', '교과목의 교육 목적 및 필요성을 기술해 주세요.'), true)}
+  ${field('2. 교과목의 특징 및 장점', area('overview.features', '특징과 장점을 구체적으로 기술하고, 학문 융복합 학습의 특징이 있으면 함께 적어 주세요.'), true)}
+  ${field('3. 기대효과', area('overview.effects', '플립러닝 교과목으로 개발·운영했을 때 예상되는 학습효과를 기술해 주세요.'), true)}
+  ${field('과목개요(국문)', area('overview.summaryKo'), true)}
+  ${field('과목개요(영문)', area('overview.summaryEn'))}
+  ${field('학습목표', area('overview.goals'), true)}`;
+}
+
+function step3() {
+  const items = S.data.strategy.evalItems || [];
+  const sum = items.reduce((a, x) => a + (Number(x.pct) || 0), 0);
+  return `<h2>플립러닝 단계별 교수·학습 방법 및 평가</h2>
+  ${field('Pre-class', area('strategy.pre'), true)}
+  ${field('In-class', area('strategy.inClass'), true)}
+  ${field('Post-class', area('strategy.post'), true)}
+  <h3>평가항목 및 반영비율 <span class="sum ${sum === 100 ? 'good' : 'bad'}" id="evalSum">합계 ${sum}%</span></h3>
+  <table><tr><th style="width:28%">평가항목</th><th style="width:16%">비율(%)</th><th>평가 전략</th>${S.editable ? '<th style="width:60px"></th>' : ''}</tr>
+  ${items.map((x, i) => `<tr><td>${inp(`strategy.evalItems.${i}.name`)}</td><td>${inp(`strategy.evalItems.${i}.pct`, { type: 'number', min: 0 })}</td>
+      <td>${inp(`strategy.evalItems.${i}.desc`)}</td>${S.editable ? `<td><button class="link" onclick="delEval(${i})">삭제</button></td>` : ''}</tr>`).join('')}
+  </table>
+  ${S.editable ? '<button class="link" onclick="addEval()">+ 평가항목 추가</button>' : ''}
+  ${field('평가항목별 평가기준', area('strategy.evalCriteria'))}
+  <div class="grid">${field('강의교재', inp('strategy.textbook'))}${field('보조교재', inp('strategy.subTextbook'))}</div>
+  ${field('기타 (수업운영 시 필요한 지원, 멀티미디어 자료 활용 등)', area('strategy.etc'))}`;
+}
+function addEval() { S.data.strategy.evalItems.push({ name: '', pct: 0, desc: '' }); render(); }
+function delEval(i) { S.data.strategy.evalItems.splice(i, 1); render(); }
+
+function step4() {
+  return `<h2>주차별 학습 설계</h2>
+  <div class="hint" style="margin-bottom:12px">각 주차를 눌러 펼쳐 작성합니다. 주차마다 유형을 고르세요. 기본은 8주차·16주차가 시험이고 나머지가 영상입니다. 시험 주차를 옮기거나 15주로 운영하면 유형을 바꿔 주세요. 영상·오프라인 주차는 학습주제가 필수입니다.</div>
+  <div class="notice" style="margin-bottom:12px">영상 개발 주차: <b id="videoCount">${videoCount(S.data)}주</b>${INIT.minWeeks[S.data.basic.classType] ? ` (${esc(S.data.basic.classType)} 최소 ${INIT.minWeeks[S.data.basic.classType]}주)` : ''}</div>
+  ${S.data.weeks.map((w, i) => {
+    const t = weekType(w, i), fixed = !needsTopic(w, i);
+    return `<details class="${fixed ? 'fixed' : ''}" ${!fixed && !w.topic ? 'open' : ''}>
+      <summary>${i + 1}주차 · ${esc(WEEK_LABEL[t])} · ${esc(w.topic || (fixed ? '' : '(학습주제 미입력)'))}</summary>
+      <div class="body">
+        ${field('주차 유형', `<select data-p="weeks.${i}.type" ${dis()}>${WEEK_TYPES.map(x => `<option value="${x}" ${x === t ? 'selected' : ''}>${esc(WEEK_LABEL[x])}</option>`).join('')}</select>`, true)}
+        ${fixed ? `${field('주제·안내 (선택)', inp(`weeks.${i}.topic`, { ph: t === '시험' ? '예: 중간고사, 기말과제 평가' : '' }))}<div class="hint">${t === '시험' ? '시험·평가 주차입니다.' : '운영하지 않는 주차입니다.'} 필요하면 학습 소요시간이나 안내 사항만 적어 주세요.</div>` : field('학습주제', inp(`weeks.${i}.topic`), true)}
+        ${fixed ? '' : field('A. Pre-class: 학습 내용 및 퀴즈', area(`weeks.${i}.pre`))}
+        ${fixed ? '' : `<div class="grid">${field('B-④ 도입 (Pre-class 평가 내용 포함)', area(`weeks.${i}.intro`))}${field('B-⑤ 심화학습', area(`weeks.${i}.deep`))}
+        ${field('B-⑥ 마무리 1 (핵심 요약·다음 차시 안내)', area(`weeks.${i}.wrap1`))}${field('B-⑦ 마무리 2 (Post-class 학습활동 안내)', area(`weeks.${i}.wrap2`))}</div>`}
+        ${field('⑧ 학습 소요시간(분)', inp(`weeks.${i}.minutes`, { type: 'number', min: 0 }))}
+      </div></details>`;
+  }).join('')}`;
+}
+
+function step5() {
+  const b = S.data.basic, sum = (S.data.strategy.evalItems || []).reduce((a, x) => a + (Number(x.pct) || 0), 0);
+  const need = S.data.weeks.filter((w, i) => needsTopic(w, i));
+  const filled = need.filter(w => w.topic).length;
+  return `<h2>확인 및 제출</h2>
+  <table>
+    <tr><th style="width:28%">과목</th><td>${esc(b.courseCode)} ${esc(b.section ? '(' + b.section + '분반)' : '')} ${esc(b.nameKo)} / ${esc(b.nameEn)}</td></tr>
+    <tr><th>책임자</th><td>${esc(b.prof)} · ${esc(b.org)} · ${esc(b.position)}</td></tr>
+    <tr><th>수업유형·학점</th><td>${esc(b.classType)} · ${esc(b.creditPlan)}</td></tr>
+    <tr><th>개발구분·영상 주차</th><td>${esc(b.devType)} · ${videoCount(S.data)}주</td></tr>
+    <tr><th>촬영방식</th><td>${esc(b.shootType)}</td></tr>
+    <tr><th>평가 비율 합계</th><td>${sum}%</td></tr>
+    <tr><th>주차별 학습주제</th><td>${filled} / ${need.length} 주차 입력</td></tr>
+    <tr><th>신청 계정</th><td>${esc(INIT.email)}</td></tr>
+  </table>
+  <div id="errs"></div>
+  <div class="notice" style="margin-top:14px">제출하면 신청서 PDF가 만들어지고 접수 안내 메일이 발송됩니다. PDF를 출력해 서명한 뒤 RC 행정팀을 경유해 공문으로 제출해 주세요.</div>`;
+}
+
+function navButtons() {
+  const last = S.step === STEPS.length - 1;
+  return `<div class="btns">
+    <div><button onclick="goHome()">목록으로</button> ${S.step > 0 ? '<button onclick="go(-1)">이전</button>' : ''}</div>
+    <div>${S.editable ? '<button onclick="save(true)">임시저장</button>' : ''}
+    ${last ? (S.editable ? `<button class="primary" onclick="submitApp()">${S.submitted ? '수정 내용 제출' : '제출'}</button>` : '')
+           : '<button class="primary" onclick="go(1)">다음</button>'}</div></div>`;
+}
+
+/* ---------- 입력 바인딩 ---------- */
+function bind() {
+  document.querySelectorAll('[data-p]').forEach(el => {
+    el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', () => {
+      let v = el.type === 'checkbox' ? el.checked : el.value;
+      if (el.type === 'number') v = el.value === '' ? '' : Number(el.value);
+      set(S.data, el.dataset.p, v);
+      if (el.dataset.p.indexOf('.pct') > -1) updateSum();
+      if (el.dataset.p === 'basic.classType' || /^weeks\.\d+\.type$/.test(el.dataset.p)) render();
+    });
+  });
+  const q = document.getElementById('q');
+  if (q) q.addEventListener('input', () => {
+    clearTimeout(q._h);
+    q._h = setTimeout(() => {
+      const box = document.getElementById('qres');
+      if (q.value.trim().length < 2) { box.style.display = 'none'; return; }
+      call('searchCourses', q.value).then(list => {
+        box.style.display = 'block';
+        box.innerHTML = list.length ? list.map((c, i) => `<div data-i="${i}">${esc(c.courseCode)}-${esc(c.section)} · ${esc(c.nameKo)} · ${esc(c.dept)} · ${esc(c.prof)}</div>`).join('')
+                                    : '<div>검색 결과가 없습니다. 목록에 없으면 아래 “직접 입력”을 체크하세요.</div>';
+        box.querySelectorAll('[data-i]').forEach(d => d.onclick = () => pickCourse(list[d.dataset.i]));
+      }).catch(e => toast(e.message || e));
+    }, 350);
+  });
+}
+function updateSum() {
+  const sum = (S.data.strategy.evalItems || []).reduce((a, x) => a + (Number(x.pct) || 0), 0);
+  const el = document.getElementById('evalSum');
+  if (el) { el.textContent = '합계 ' + sum + '%'; el.className = 'sum ' + (sum === 100 ? 'good' : 'bad'); }
+}
+function pickCourse(c) {
+  Object.assign(S.data.basic, { courseCode: c.courseCode, section: c.section, nameKo: c.nameKo, nameEn: c.nameEn, dept: c.dept, grade: c.grade, credits: c.credits, courseManual: false });
+  if (!S.data.basic.prof) S.data.basic.prof = c.prof;
+  render(); toast('과목 정보를 채웠습니다.');
+}
+
+/* ---------- 단계 점검 ---------- */
+function stepErrors(step) {
+  const d = S.data, b = d.basic, e = [];
+  if (step === 0) {
+    if (!d.consent.required) e.push('필수 동의에 체크해 주세요.');
+  }
+  if (step === 1) {
+    [['courseCode', '학수번호'], ['nameKo', '과목명(한글)'], ['nameEn', '과목명(영문)'], ['dept', '개설학과'], ['prof', '성명'], ['position', '직위'], ['org', '소속'],
+     ['classType', '수업유형'], ['creditPlan', '학점 구성'], ['devType', '개발구분'], ['shootType', '촬영방식']].forEach(f => { if (!String(b[f[0]] || '').trim()) e.push(f[1] + '을(를) 입력해 주세요.'); });
+  }
+  if (step === 4) {
+    d.weeks.forEach((w, i) => { if (needsTopic(w, i) && !String(w.topic || '').trim()) e.push((i + 1) + '주차 학습주제를 입력해 주세요.'); });
+    const minW = INIT.minWeeks[b.classType], vc = videoCount(d);
+    if (minW && vc < minW) e.push(`${b.classType}는 영상 개발 주차가 ${minW}주 이상이어야 합니다(현재 ${vc}주). 주차 유형을 확인해 주세요.`);
+  }
+  if (step === 3) {
+    const sum = (d.strategy.evalItems || []).reduce((a, x) => a + (Number(x.pct) || 0), 0);
+    if (sum !== 100) e.push('평가 비율 합계를 100%로 맞춰 주세요(현재 ' + sum + '%).');
+  }
+  return e;
+}
+function go(delta) {
+  if (delta > 0 && S.editable) {
+    const e = stepErrors(S.step);
+    if (e.length) { alert(e.join('\n')); return; }
+    save(false);
+  }
+  S.step = Math.max(0, Math.min(STEPS.length - 1, S.step + delta));
+  render(); window.scrollTo(0, 0);
+}
+function goHome() {
+  const leave = () => call('getInitData').then(d => { INIT = d; S.view = 'home'; render(); });
+  if (S.view === 'form' && S.editable && S.data && S.data.consent.required) save(false).then(leave); else leave();
+}
+
+/* ---------- 저장·제출 ---------- */
+// 저장 요청을 한 줄로 세웁니다. 앞 저장이 끝나 S.id(TMP-…)를 받은 뒤에 다음 저장이 나가므로
+// 응답 전에 '다음'·'임시저장'을 연달아 눌러도 임시저장 행이 중복으로 생기지 않습니다.
+let saveQueue = Promise.resolve();
+function save(showToast) {
+  if (!S.editable || !S.data.consent.required) {
+    if (showToast) toast('필수 동의 후 저장할 수 있습니다.');
+    return saveQueue;
+  }
+  const step = S.step, data = S.data;
+  const run = () => {
+    if (S.data !== data) return;          // 그사이 다른 신청서를 열었으면 건너뜀
+    return call('saveDraft', { id: S.id, step: step, data: data })
+      .then(r => { if (S.data === data) S.id = r.id; if (showToast) toast('임시저장했습니다 (' + r.savedAt + ')'); })
+      .catch(e => toast('저장 실패: ' + (e.message || e)));
+  };
+  saveQueue = saveQueue.then(run, run);
+  return saveQueue;
+}
+function submitApp() {
+  if (S.busy) return;
+  for (let s = 0; s < 5; s++) { const e = stepErrors(s); if (e.length) { S.step = s; render(); alert(e.join('\n')); return; } }
+  if (!confirm(S.submitted ? '수정한 내용으로 다시 제출할까요? 신청서 PDF가 새로 만들어집니다.' : '제출할까요?')) return;
+  S.busy = true;
+  const btn = event && event.target, label = btn ? btn.textContent : '';
+  const reset = () => { S.busy = false; if (btn) { btn.disabled = false; btn.textContent = label; } };
+  if (btn) { btn.disabled = true; btn.textContent = '제출 중… (PDF 생성)'; }
+  // 진행 중인 임시저장이 끝나 S.id가 정해진 뒤에 제출합니다.
+  saveQueue.then(() => call('submitApp', { id: S.id, data: S.data })).then(r => {
+    if (!r.ok) {
+      reset();
+      document.getElementById('errs').innerHTML = `<div class="notice warn" style="margin-top:14px"><b>아래 항목을 확인해 주세요.</b><ul class="errors">${r.errors.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+      return;
+    }
+    S.busy = false;
+    S.result = r; S.id = r.id; S.view = 'done'; render(); window.scrollTo(0, 0);
+  }).catch(e => { reset(); alert('제출 중 오류가 발생했습니다.\n' + (e.message || e)); });
+}
+function doneView() {
+  const r = S.result;
+  return `<div class="card"><h2>${r.isNew ? '신청이 접수되었습니다' : '수정 내용이 반영되었습니다'}</h2>
+    <div class="notice ok">접수번호 <b>${esc(r.id)}</b>${r.isNew ? ' · 접수 안내 메일을 보냈습니다.' : ''}</div>
+    <h3>다음 할 일</h3>
+    <ol><li><a href="${esc(r.pdf)}" target="_blank">신청서 PDF 열기</a> → 출력 후 서명</li>
+        <li>개인정보서약서 1부와 함께 소속 단과대학 RC 행정팀을 경유해 그룹웨어 공문으로 제출(수신: 교육혁신처 에듀테크혁신팀)</li>
+        <li>마감(${esc(INIT.deadline)}) 전까지 이 페이지에서 내용을 수정할 수 있습니다.</li></ol>
+    <div class="btns"><span></span><button class="primary" onclick="goHome()">내 신청서 목록</button></div></div>`;
+}
+</script>
+</body>
+</html>

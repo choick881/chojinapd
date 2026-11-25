@@ -1,0 +1,17 @@
+{
+  "name": "hyflip-apply",
+  "version": "1.0.3",
+  "private": true,
+  "description": "HY FLIP 플립러닝 콘텐츠 개발 신청 모듈 (Google Apps Script)",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "check": "node scripts/check-syntax.js",
+    "push": "clasp push",
+    "deploy:test": "bash scripts/deploy.sh test",
+    "deploy:prod": "bash scripts/deploy.sh prod",
+    "setup:google": "node scripts/setup-google.js"
+  },
+  "devDependencies": {
+    "@google/clasp": "2.4.2"
+  }
+}

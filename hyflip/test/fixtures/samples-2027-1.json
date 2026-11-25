@@ -1,0 +1,1052 @@
+[
+ {
+  "label": "샘플A_문화산업회계",
+  "note": "원본 그대로 7주차 중간고사, 15주차 기말고사, 16주차 없음. 영상 13주.",
+  "courseRow": [
+   "2027-1",
+   "TEST0001",
+   "01",
+   "문화산업의회계및세무",
+   "Accounting & Taxation",
+   "경영학과",
+   3,
+   1,
+   "테스트교수A"
+  ],
+  "data": {
+   "consent": {
+    "required": true,
+    "optional": true,
+    "at": ""
+   },
+   "basic": {
+    "semester": "2027-1",
+    "courseCode": "TEST0001",
+    "section": "01",
+    "nameKo": "문화산업의회계및세무",
+    "nameEn": "Accounting & Taxation",
+    "dept": "경영학과",
+    "grade": "1",
+    "majorType": "전공선택",
+    "credits": 3,
+    "prof": "테스트교수A",
+    "org": "경영대학 경영학과",
+    "position": "조교수",
+    "phone": "010-0000-0001",
+    "classType": "Smart-F",
+    "creditPlan": "3학점(온1.5+오1.5)",
+    "devType": "신규",
+    "videoWeeks": 13,
+    "shootType": "셀프스튜디오",
+    "courseManual": false
+   },
+   "overview": {
+    "purpose": "문화산업은 영화, 드라마, 음악, 게임, 공연, 전시, 플랫폼 등 다양한 분야에서 빠르게 성장하고 있으며, 콘텐츠 제작비, IP, 로열티, 수익배분, 구독매출, ESG 공시 등 일반 산업과 다른 회계 이슈가 많이 발생한다. 본 교과목은 학생들이 문화산업 기업의 재무제표와 회계정보를 이해하고, 콘텐츠 비즈니스의 수익구조와 비용구조를 분석할 수 있도록 하는 데 목적이 있다. 특히 문화산업 분야의 경영자, 기획자, 회계·재무 담당자에게 필요한 실무적 회계역량을 기르는 데 필요성이 있다.",
+    "features": "본 교과목은 기초회계 지식이 부족한 학생도 수강할 수 있도록 초반 3주에 재무제표, 수익·비용 인식, 자산화와 비용화 등 핵심 회계개념을 먼저 다룬다. 이후 영화·드라마, 음악·엔터테인먼트, 게임, 공연·전시 등 문화산업별 사례를 중심으로 회계 이슈를 학습한다. 또한 단순한 회계처리 설명에 그치지 않고, 프로젝트 손익분석, 재무제표 분석, ESG 공시까지 연결하여 문화산업 경영 의사결정에 활용할 수 있다는 장점이 있다.",
+    "effects": "스마트러닝 방식으로 운영할 경우 학생들은 온라인 콘텐츠를 통해 기초회계 개념을 반복 학습하고, 오프라인 또는 실시간 수업에서는 사례분석과 토론에 집중할 수 있다. 영상, 퀴즈, 재무제표 분석 실습, 산업별 사례자료를 활용함으로써 학생들의 이해도와 참여도를 높일 수 있다. 또한 관심 산업별로 학습자료를 선택적으로 탐색할 수 있어 자기주도학습이 가능하다.",
+    "summaryKo": "이 과목은 영화, 드라마, 음악, 게임, 공연, 전시, 플랫폼 등 문화산업에서 발생하는 주요 회계 이슈를 다루는 과목이다. 기초회계 개념을 바탕으로 수익인식, 제작비 회계, 무형자산과 IP, 로열티와 수익배분, 프로젝트 손익분석, 재무제표 분석, ESG 공시 등을 학습한다.",
+    "summaryEn": "This course studies key accounting issues in film, drama, music, games, performing arts, exhibitions, and digital platforms. It begins with fundamental accounting concepts and then explores revenue recognition, content production costs, intangible assets and intellectual property, royalties and revenue-sharing arrangements, project profitability analysis, financial statement analysis, and ESG-related disclosure.",
+    "goals": "- 문화산업 기업의 재무제표와 주요 회계 항목을 이해할 수 있다.\n- 콘텐츠 판매, 구독, 광고, 라이선스, 로열티 등 다양한 수익모델의 회계처리를 설명할 수 있다.\n- 제작비, 개발비, 무형자산, IP, 손상차손 등 문화산업 특유의 회계 이슈를 분석할 수 있다.\n- 영화·드라마, 음악, 게임, 공연·전시 산업의 수익구조와 비용구조를 회계 관점에서 비교할 수 있다.\n- 프로젝트별 손익분석과 재무제표 분석을 통해 경영성과와 리스크를 평가할 수 있다.\n- ESG와 회계정보가 지속가능성, 투명성, 기업가치에 미치는 영향을 이해할 수 있다."
+   },
+   "strategy": {
+    "pre": "수업 전 학습은 핵심 이론과 개념에 대한 사전 이해를 목적으로 한다. 학생들은 제공된 동영상 강의를 통해 해당 주차의 주요 재무와 회계 개념 및 이슈를 학습한다.",
+    "inClass": "◦ 이론 강의의 정리 및 질의응답\n◦ 동영상 강의를 통해 학습한 내용에 대한 심화 이론 학습\n◦ 이론의 실제 적용 방법을 설명하고 예시를 제시\n◦ 학생들의 이해와 실습 결과에 대한 피드백 제공",
+    "post": "◦ 동영상 강의를 통해 반복 학습을 허용\n◦ 이론을 문제나 사례에 적용하는 과제 활동을 통해 문제 해결 역량을 강화",
+    "evalItems": [
+     {
+      "name": "출석",
+      "pct": 10,
+      "desc": "출석 및 수업 참여도"
+     },
+     {
+      "name": "참여",
+      "pct": 10,
+      "desc": "과제 제출물의 성실성"
+     },
+     {
+      "name": "중간고사",
+      "pct": 40,
+      "desc": "학기 전반부 강의 내용의 이해도 확인"
+     },
+     {
+      "name": "기말고사",
+      "pct": 40,
+      "desc": "학기 후반부 강의 내용의 이해도 확인"
+     }
+    ],
+    "evalCriteria": "출석: 출석 및 수업 참여도 / 과제: 제출물의 성실성 / 중간·기말고사: 전반부·후반부 이해도",
+    "textbook": "",
+    "subTextbook": "",
+    "etc": ""
+   },
+   "weeks": [
+    {
+     "topic": "회계 기초 Ⅰ",
+     "pre": "재무상태표, 손익계산서, 현금흐름표의 기본 구조",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 1,
+     "type": "영상"
+    },
+    {
+     "topic": "회계 기초 Ⅱ",
+     "pre": "수익인식과 비용인식",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 2,
+     "type": "영상"
+    },
+    {
+     "topic": "회계 기초 Ⅲ",
+     "pre": "자산화, 비용화, 무형자산과 손상",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 3,
+     "type": "영상"
+    },
+    {
+     "topic": "문화산업의 수익인식 Ⅰ",
+     "pre": "판매, 구독, 광고, 라이선스",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 4,
+     "type": "영상"
+    },
+    {
+     "topic": "문화산업의 수익인식 Ⅱ",
+     "pre": "로열티, 수익배분",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 5,
+     "type": "영상"
+    },
+    {
+     "topic": "콘텐츠 제작비와 무형자산",
+     "pre": "콘텐츠 제작비와 무형자산",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 6,
+     "type": "영상"
+    },
+    {
+     "topic": "중간고사",
+     "pre": "",
+     "intro": "",
+     "deep": "",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 75,
+     "no": 7,
+     "type": "시험"
+    },
+    {
+     "topic": "영화·드라마 산업의 회계",
+     "pre": "영화·드라마 산업의 회계",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 8,
+     "type": "영상"
+    },
+    {
+     "topic": "음악·엔터테인먼트 산업의 회계",
+     "pre": "음악·엔터테인먼트 산업의 회계",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 9,
+     "type": "영상"
+    },
+    {
+     "topic": "게임산업의 회계",
+     "pre": "게임산업의 회계",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 10,
+     "type": "영상"
+    },
+    {
+     "topic": "공연·전시·축제 산업의 회계",
+     "pre": "공연·전시·축제 산업의 회계",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 11,
+     "type": "영상"
+    },
+    {
+     "topic": "문화산업의 관리회계와 프로젝트 손익분석",
+     "pre": "관리회계와 프로젝트 손익분석",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 12,
+     "type": "영상"
+    },
+    {
+     "topic": "문화산업의 재무제표 분석",
+     "pre": "문화산업의 재무제표 분석",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 13,
+     "type": "영상"
+    },
+    {
+     "topic": "ESG 회계·공시",
+     "pre": "ESG 회계·공시",
+     "intro": "질의응답 (15분)",
+     "deep": "심화 이론 강의 (45분)",
+     "wrap1": "핵심내용 요약정리 및 다음 차시 안내 (10분)",
+     "wrap2": "이론 복습 권장 (5분)",
+     "minutes": 75,
+     "no": 14,
+     "type": "영상"
+    },
+    {
+     "topic": "기말고사",
+     "pre": "",
+     "intro": "",
+     "deep": "",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 75,
+     "no": 15,
+     "type": "시험"
+    },
+    {
+     "topic": "",
+     "pre": "",
+     "intro": "",
+     "deep": "",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 16,
+     "type": "없음"
+    }
+   ]
+  }
+ },
+ {
+  "label": "샘플B_아동건강간호",
+  "note": "원본 그대로 7주차 중간고사, 8~15주차 팀 프로젝트(오프라인). 영상이 4주(2~5주)뿐이라 Smart-F 최소 8주에 못 미쳐 제출이 막혀야 정상인 \"실패 샘플\".",
+  "courseRow": [
+   "2027-1",
+   "TEST0002",
+   "01",
+   "아동건강간호",
+   "CHILD HEALTH NURSING",
+   "간호학과",
+   2,
+   4,
+   "테스트교수B"
+  ],
+  "data": {
+   "consent": {
+    "required": true,
+    "optional": false,
+    "at": ""
+   },
+   "basic": {
+    "semester": "2027-1",
+    "courseCode": "TEST0002",
+    "section": "01",
+    "nameKo": "아동건강간호",
+    "nameEn": "CHILD HEALTH NURSING",
+    "dept": "간호학과",
+    "grade": "4",
+    "majorType": "전공필수",
+    "credits": 2,
+    "prof": "테스트교수B",
+    "org": "간호대학 간호학과",
+    "position": "조교수",
+    "phone": "",
+    "classType": "Smart-F",
+    "creditPlan": "2학점(온1+오1)",
+    "devType": "신규",
+    "videoWeeks": 4,
+    "shootType": "셀프스튜디오",
+    "courseManual": false
+   },
+   "overview": {
+    "purpose": "아동간호의 기본 개념과 주요 철학 및 아동 성장발달 특성에 대한 이해를 바탕으로 아동기 건강문제 해결을 위한 간호중재를 개발함.\n- 아동간호의 기본 개념과 주요 철학을 이해한다.\n- 아동의 성장발달 특성과 주요 건강 문제를 이해한다.\n- 아동기 건강 문제 해결을 위한 간호 중재를 개발한다.",
+    "features": "◦ 플립러닝을 활용한 학습 참여도 향상: 사전 강의 영상을 통해 학습자 주도 학습을 촉진하며, 수업 시간에는 심화 토론과 사례 분석에 집중. 영어 강의로 인한 학습자 부담을 경감.\n◦ 팀 프로젝트를 통한 실무 중심의 심화학습 제공: 이론 학습을 심화하여 임상 경험과 이론을 연결할 수 있도록 설계.",
+    "effects": "◦ 자기주도 학습 역량 강화\n◦ 이론과 프로젝트의 유기적 연결을 통한 학습 효과 극대화: 아동기 건강 문제를 종합적으로 이해하고 가족 중심 간호 중재 전략을 효과적으로 활용할 수 있는 역량 강화",
+    "summaryKo": "아동간호의 일반적 경향과 특성을 서술하고 어린이 성장발달 및 해부, 생리적 특성을 기술하며 신체적 사정과 기본욕구의 개념을 습득한다. 가족중심의 양육과 건강증진 요인을 강화하며 적합한 간호과정을 시범하여 아동건강문제 전문가로서의 능력을 기른다.",
+    "summaryEn": "A study of children and adolescents with common acute and chronic illness within the context of the family environment. Nursing strategies focus on intervention to promote, restore and maintain health and foster growth and development.",
+    "goals": "아동간호의 기본 개념과 주요 철학 및 아동 성장발달 특성에 대한 이해를 바탕으로 아동기 건강문제 해결을 위한 간호 중재를 개발한다."
+   },
+   "strategy": {
+    "pre": "◦ 수업 전 개별 학습 단계로, 교수자가 제공한 동영상 강의를 통해 사전 학습 수행\n◦ 동영상 강의 내용을 통해 기본 개념과 주요 내용을 이해하며 In-class 활동 준비",
+    "inClass": "◦ 사전 학습 내용을 바탕으로 실시간 퀴즈 풀이 및 해설을 통해 학습 내용을 검토하고 요약 정리\n◦ 교수자가 사전 제시한 주제에 관한 토론 활동을 통해 비판적 사고 확장",
+    "post": "◦ 교수자가 제공한 Post-class 활동 내용을 중심으로 러닝 포트폴리오 작성 및 관리",
+    "evalItems": [
+     {
+      "name": "출석",
+      "pct": 15,
+      "desc": "온/오프라인 출결"
+     },
+     {
+      "name": "과제",
+      "pct": 15,
+      "desc": "아동간호중재 관련 관심 주제 보고서"
+     },
+     {
+      "name": "중간고사",
+      "pct": 20,
+      "desc": "이론 학습 시험"
+     },
+     {
+      "name": "팀프로젝트",
+      "pct": 35,
+      "desc": "아동간호중재 개발 결과물"
+     },
+     {
+      "name": "동료평가",
+      "pct": 5,
+      "desc": "프로젝트 팀원 평가"
+     },
+     {
+      "name": "학습참여도",
+      "pct": 10,
+      "desc": "학습 참여도"
+     }
+    ],
+    "evalCriteria": "",
+    "textbook": "Jane W. Ball, et al. (2024). Child Health Nursing, 3rd Edition. Pearson",
+    "subTextbook": "교수 제작 PDF",
+    "etc": ""
+   },
+   "weeks": [
+    {
+     "topic": "Course Orientation",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의) 교과목 오리엔테이션",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 100,
+     "no": 1,
+     "type": "오프라인"
+    },
+    {
+     "topic": "Overview of Pediatric Nursing",
+     "pre": "강의 동영상 시청",
+     "intro": "주요 학습 내용에 대한 실시간 퀴즈 (10분)",
+     "deep": "퀴즈 해설, 수업 주제 관련 토론 (20분)",
+     "wrap1": "핵심 내용 요약정리, 다음 차시 안내 (15분)",
+     "wrap2": "러닝 포트폴리오 관리 (5분)",
+     "minutes": 50,
+     "no": 2,
+     "type": "영상"
+    },
+    {
+     "topic": "Determinants of Child Health (1)",
+     "pre": "강의 동영상 시청",
+     "intro": "주요 학습 내용에 대한 실시간 퀴즈 (10분)",
+     "deep": "퀴즈 해설, 수업 주제 관련 토론 (20분)",
+     "wrap1": "핵심 내용 요약정리, 다음 차시 안내 (15분)",
+     "wrap2": "러닝 포트폴리오 관리 (5분)",
+     "minutes": 50,
+     "no": 3,
+     "type": "영상"
+    },
+    {
+     "topic": "Determinants of Child Health (2)",
+     "pre": "강의 동영상 시청",
+     "intro": "주요 학습 내용에 대한 실시간 퀴즈 (10분)",
+     "deep": "퀴즈 해설, 수업 주제 관련 토론 (20분)",
+     "wrap1": "핵심 내용 요약정리, 다음 차시 안내 (15분)",
+     "wrap2": "러닝 포트폴리오 관리 (5분)",
+     "minutes": 50,
+     "no": 4,
+     "type": "영상"
+    },
+    {
+     "topic": "Health Issues in Childhood",
+     "pre": "강의 동영상 시청",
+     "intro": "주요 학습 내용에 대한 실시간 퀴즈 (10분)",
+     "deep": "퀴즈 해설, 수업 주제 관련 토론 (20분)",
+     "wrap1": "핵심 내용 요약정리, 다음 차시 안내 (15분)",
+     "wrap2": "러닝 포트폴리오 관리 (5분)",
+     "minutes": 50,
+     "no": 5,
+     "type": "영상"
+    },
+    {
+     "topic": "Individual Project",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의) Exploring Topics of Interest and Interventions",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 100,
+     "no": 6,
+     "type": "오프라인"
+    },
+    {
+     "topic": "Midterm Exam",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의) 중간고사",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 60,
+     "no": 7,
+     "type": "시험"
+    },
+    {
+     "topic": "Team Project",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의, IC-PBL) Development of Child Health Interventions",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 100,
+     "no": 8,
+     "type": "오프라인"
+    },
+    {
+     "topic": "Team Project",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의, IC-PBL) Development of Child Health Interventions",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 100,
+     "no": 9,
+     "type": "오프라인"
+    },
+    {
+     "topic": "Team Project",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의, IC-PBL) Development of Child Health Interventions",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 100,
+     "no": 10,
+     "type": "오프라인"
+    },
+    {
+     "topic": "Team Project",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의, IC-PBL) Development of Child Health Interventions",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 100,
+     "no": 11,
+     "type": "오프라인"
+    },
+    {
+     "topic": "Team Project",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의, IC-PBL) Development of Child Health Interventions",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 100,
+     "no": 12,
+     "type": "오프라인"
+    },
+    {
+     "topic": "Team Project",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의, IC-PBL) Development of Child Health Interventions",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 100,
+     "no": 13,
+     "type": "오프라인"
+    },
+    {
+     "topic": "Team Project",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의, IC-PBL) Development of Child Health Interventions",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 100,
+     "no": 14,
+     "type": "오프라인"
+    },
+    {
+     "topic": "Team Project",
+     "pre": "",
+     "intro": "",
+     "deep": "(오프라인 강의, IC-PBL) Development of Child Health Interventions",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 100,
+     "no": 15,
+     "type": "오프라인"
+    },
+    {
+     "topic": "",
+     "pre": "",
+     "intro": "",
+     "deep": "",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 16,
+     "type": "없음"
+    }
+   ]
+  }
+ },
+ {
+  "label": "샘플C_지속가능경영시스템",
+  "note": "8주차 중간고사, 11~15주차 팀 프로젝트·발표(오프라인), 16주차 기말과제 평가. 영상이 정확히 8주라 최소 기준 경계값.",
+  "courseRow": [
+   "2027-1",
+   "TEST0003",
+   "01",
+   "지속가능경영시스템",
+   "Sustainable Management System",
+   "경영공학",
+   3,
+   "전체",
+   "테스트교수C"
+  ],
+  "data": {
+   "consent": {
+    "required": true,
+    "optional": true,
+    "at": ""
+   },
+   "basic": {
+    "semester": "2027-1",
+    "courseCode": "TEST0003",
+    "section": "01",
+    "nameKo": "지속가능경영시스템",
+    "nameEn": "Sustainable Management System",
+    "dept": "경영공학",
+    "grade": "전체",
+    "majorType": "교양",
+    "credits": 3,
+    "prof": "테스트교수C",
+    "org": "기술혁신대학 산업융합학부",
+    "position": "조교수",
+    "phone": "010-0000-0003",
+    "classType": "Smart-F",
+    "creditPlan": "3학점(온1.5+오1.5)",
+    "devType": "신규",
+    "videoWeeks": 8,
+    "shootType": "연구실",
+    "courseManual": false
+   },
+   "overview": {
+    "purpose": "(목적) 본 교과목은 수강자가 산업통상자원부와 한국생산성본부에서 개발한 ESG 평가모형인 K-ESG 가이드라인을 활용하여 국내 기업들을 대상으로 ESG 활동성과를 평가하는 프로젝트를 경험할 수 있도록 설계하였다.\n(필요성) 최근 기업의 경영성과 평가에 있어서 비재무적 지표인 환경·사회·지배구조(ESG)에 대한 중요성이 부각되고 있다. 글로벌 자산운용사들이 책임투자원칙(PRI)을 천명함에 따라 ESG 성과를 창출하기 위한 기업의 노력이 요구된다. 따라서 산업계 진출을 예정하고 있는 재학생들에게 ESG 평가시스템에 대한 이해를 제고할 필요가 있다.",
+    "features": "본 교과목은 IC-PBL 시그니처 수업으로 전공에 제약없이 학부생이면 누구나 수강할 수 있는 교과목임. 수강자는 자신의 전공과 기업의 ESG 경영체계 간의 연계를 통해 융합교육의 특징과 전공지식의 고도화 장점이 있음.",
+    "effects": "수강생은 플립러닝 방식의 동영상 강의를 통해 UN SDGs의 개념을 기업경영 전반에 적용하는 ESG 경영원리를 심도있게 습득하고, 실무에 적용할 수 있는 프로젝트를 수행함으로써 졸업 이후 산업계 진출 시 지속가능발전에 기여할 수 있는 역량을 함양할 수 있을 것으로 기대됨.",
+    "summaryKo": "본 교과목은 국내의 산업환경과 현실을 고려하여 개발한 ESG 평가모형을 활용하여 국내 기업들을 대상으로 ESG 활동성과를 평가하는 프로젝트를 경험할 수 있도록 설계하였다.",
+    "summaryEn": "This course is designed to provide hands-on experience evaluating the ESG performance of domestic companies using an ESG evaluation model developed by the Ministry of Trade, Industry and Energy and the Korea Productivity Center.",
+    "goals": "• ESG와 SDGs 간의 연계성을 이해할 수 있다.\n• K-ESG 가이드라인을 활용하여 주어진 과제를 해결할 수 있다."
+   },
+   "strategy": {
+    "pre": "• 학습자는 동영상 강의 시청\n• 학습자는 동영상 강의에서 제시된 문제를 풀이",
+    "inClass": "• 동영상 강의에서 제시되었던 문제에 기반한 퀴즈 참여\n• 교수자는 퀴즈 평가 결과 공유 후 그룹별 토론을 통해 문제 해결 역량 강화\n• 다음 주차 학습내용 안내",
+    "post": "• 과제에 대한 개별 복습\n• 개별 질의 및 응답",
+    "evalItems": [
+     {
+      "name": "출석",
+      "pct": 10,
+      "desc": "강의영상 시청율"
+     },
+     {
+      "name": "과제",
+      "pct": 10,
+      "desc": "퀴즈 참여율"
+     },
+     {
+      "name": "중간고사",
+      "pct": 40,
+      "desc": "1~7주차 학업성취도 측정"
+     },
+     {
+      "name": "기말과제",
+      "pct": 40,
+      "desc": "ESG 평가 프로젝트 팀별 발표 평가"
+     }
+    ],
+    "evalCriteria": "",
+    "textbook": "ESG, 얼마나 윤리적인 선택인가 (도서출판 청람)",
+    "subTextbook": "",
+    "etc": ""
+   },
+   "weeks": [
+    {
+     "topic": "수업 오리엔테이션 / ESG 경영 개론",
+     "pre": "",
+     "intro": "",
+     "deep": "대면 수업",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 1,
+     "type": "오프라인"
+    },
+    {
+     "topic": "ESG의 개념과 역사적 배경",
+     "pre": "- UN환경계획\n- 글로벌 콤팩트\n- 책임투자원칙",
+     "intro": "학습영상 시청 확인: LMS 퀴즈 테스트 (40분)",
+     "deep": "팀별 사례탐구 발표 및 토론 (40분)",
+     "wrap1": "사례탐구 및 토론 피드백, 다음 차시 안내 (15분)",
+     "wrap2": "개인별 전공 연관성 관점에서 학습내용 정리 (5분)",
+     "minutes": 100,
+     "no": 2,
+     "type": "영상"
+    },
+    {
+     "topic": "의사결정과 행위의 윤리성",
+     "pre": "- 목적론\n- 의무론",
+     "intro": "학습영상 시청 확인: LMS 퀴즈 테스트 (40분)",
+     "deep": "팀별 사례탐구 발표 및 토론 (40분)",
+     "wrap1": "사례탐구 및 토론 피드백, 다음 차시 안내 (15분)",
+     "wrap2": "개인별 전공 연관성 관점에서 학습내용 정리 (5분)",
+     "minutes": 100,
+     "no": 3,
+     "type": "영상"
+    },
+    {
+     "topic": "기업의 본질과 목적",
+     "pre": "- 집합론\n- 존재론\n- 이해관계자",
+     "intro": "학습영상 시청 확인: LMS 퀴즈 테스트 (40분)",
+     "deep": "팀별 사례탐구 발표 및 토론 (40분)",
+     "wrap1": "사례탐구 및 토론 피드백, 다음 차시 안내 (15분)",
+     "wrap2": "개인별 전공 연관성 관점에서 학습내용 정리 (5분)",
+     "minutes": 100,
+     "no": 4,
+     "type": "영상"
+    },
+    {
+     "topic": "윤리경영 실행체계",
+     "pre": "- 3C체계\n- 윤리경영 유형",
+     "intro": "학습영상 시청 확인: LMS 퀴즈 테스트 (40분)",
+     "deep": "팀별 사례탐구 발표 및 토론 (40분)",
+     "wrap1": "사례탐구 및 토론 피드백, 다음 차시 안내 (15분)",
+     "wrap2": "개인별 전공 연관성 관점에서 학습내용 정리 (5분)",
+     "minutes": 100,
+     "no": 5,
+     "type": "영상"
+    },
+    {
+     "topic": "ESG 공시 및 글로벌 규제 현황",
+     "pre": "- ISSB S1, S2\n- ESRS\n- SEC 기후보고\n- KSSB",
+     "intro": "학습영상 시청 확인: LMS 퀴즈 테스트 (40분)",
+     "deep": "팀별 사례탐구 발표 및 토론 (40분)",
+     "wrap1": "사례탐구 및 토론 피드백, 다음 차시 안내 (15분)",
+     "wrap2": "개인별 전공 연관성 관점에서 학습내용 정리 (5분)",
+     "minutes": 100,
+     "no": 6,
+     "type": "영상"
+    },
+    {
+     "topic": "ESG 리스크 사례",
+     "pre": "- 엔론\n- 대우해양조선\n- 디젤 게이트\n- 지멘스",
+     "intro": "학습영상 시청 확인: LMS 퀴즈 테스트 (40분)",
+     "deep": "팀별 사례탐구 발표 및 토론 (40분)",
+     "wrap1": "사례탐구 및 토론 피드백, 다음 차시 안내 (15분)",
+     "wrap2": "개인별 전공 연관성 관점에서 학습내용 정리 (5분)",
+     "minutes": 100,
+     "no": 7,
+     "type": "영상"
+    },
+    {
+     "topic": "중간고사",
+     "pre": "1~7주차 학습내용 학업성취도 평가",
+     "intro": "",
+     "deep": "",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 8,
+     "type": "시험"
+    },
+    {
+     "topic": "ESG 평가체계 (1)",
+     "pre": "- 정보공시 영역\n- 환경 영역",
+     "intro": "학습영상 시청 확인: LMS 퀴즈 테스트 (40분)",
+     "deep": "팀별 사례탐구 발표 및 토론 (40분)",
+     "wrap1": "사례탐구 및 토론 피드백, 다음 차시 안내 (15분)",
+     "wrap2": "개인별 전공 연관성 관점에서 학습내용 정리 (5분)",
+     "minutes": 100,
+     "no": 9,
+     "type": "영상"
+    },
+    {
+     "topic": "ESG 평가체계 (2)",
+     "pre": "- 사회 영역\n- 거버넌스 영역",
+     "intro": "학습영상 시청 확인: LMS 퀴즈 테스트 (40분)",
+     "deep": "팀별 사례탐구 발표 및 토론 (40분)",
+     "wrap1": "사례탐구 및 토론 피드백, 다음 차시 안내 (15분)",
+     "wrap2": "개인별 전공 연관성 관점에서 학습내용 정리 (5분)",
+     "minutes": 100,
+     "no": 10,
+     "type": "영상"
+    },
+    {
+     "topic": "팀 프로젝트: 평가 대상 기업 선정",
+     "pre": "",
+     "intro": "",
+     "deep": "대면 수업",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 11,
+     "type": "오프라인"
+    },
+    {
+     "topic": "팀 프로젝트 중간발표: 평가 대상 기업 개요",
+     "pre": "",
+     "intro": "",
+     "deep": "대면 수업",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 12,
+     "type": "오프라인"
+    },
+    {
+     "topic": "팀 프로젝트: K-ESG 가이드라인 활용 기업 평가",
+     "pre": "",
+     "intro": "",
+     "deep": "대면 수업",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 13,
+     "type": "오프라인"
+    },
+    {
+     "topic": "팀 프로젝트 중간발표: 평가결과 보고",
+     "pre": "",
+     "intro": "",
+     "deep": "대면 수업",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 14,
+     "type": "오프라인"
+    },
+    {
+     "topic": "최종 발표회",
+     "pre": "",
+     "intro": "",
+     "deep": "대면 수업",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 15,
+     "type": "오프라인"
+    },
+    {
+     "topic": "기말과제 평가",
+     "pre": "15주차 최종발표 내용 피드백 기반 최종 보고서 제출",
+     "intro": "",
+     "deep": "",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 16,
+     "type": "시험"
+    }
+   ]
+  }
+ },
+ {
+  "label": "샘플D_고급표현학습(대학원)",
+  "note": "대학원 과목. 15주 운영이라 15주차 기말고사, 16주차 없음. 영상 13주. 모듈에는 학부/대학원 구분 칸이 없음.",
+  "courseRow": [
+   "2027-1",
+   "TEST0004",
+   "01",
+   "고급표현학습",
+   "Advanced Representation Learning",
+   "인공지능학과",
+   3,
+   "대학원",
+   "테스트교수D"
+  ],
+  "data": {
+   "consent": {
+    "required": true,
+    "optional": true,
+    "at": ""
+   },
+   "basic": {
+    "semester": "2027-1",
+    "courseCode": "TEST0004",
+    "section": "01",
+    "nameKo": "고급표현학습",
+    "nameEn": "Advanced Representation Learning",
+    "dept": "인공지능학과",
+    "grade": "대학원",
+    "majorType": "전공선택",
+    "credits": 3,
+    "prof": "테스트교수D",
+    "org": "소프트웨어대학 컴퓨터소프트웨어학부",
+    "position": "부교수",
+    "phone": "010-0000-0004",
+    "classType": "Smart-F",
+    "creditPlan": "3학점(온1.5+오1.5)",
+    "devType": "신규",
+    "videoWeeks": 13,
+    "shootType": "셀프스튜디오",
+    "courseManual": false
+   },
+   "overview": {
+    "purpose": "○ 제한된 라벨 환경에서 효과적으로 학습할 수 있는 최신 표현 학습 기법의 이론과 원리를 학습함\n○ 자가 학습, 반지도 학습, 약한지도 학습의 핵심 개념과 학습 패러다임을 이해함\n○ 대조 학습, 마스크 모델링, 예측 학습 등 최신 인공지능 기술의 기반이 되는 표현 학습 기법을 습득함\n○ MAE, VideoMAE, V-JEPA 등 최신 연구 사례를 분석하여 실제 연구 동향을 이해함\n○ 최신 연구 논문을 비판적으로 분석하고 발표하는 과정을 통해 독립적인 연구 수행 역량을 강화함\n○ 기초 모델 시대의 핵심 기술인 표현 학습에 대한 심층적인 이해를 바탕으로 향후 연구 및 응용 능력을 함양함",
+    "features": "○ 데이터 라벨 의존성을 줄이는 최신 인공지능 학습 방법론을 체계적으로 학습할 수 있음\n○ 컴퓨터 비전 분야뿐만 아니라 멀티모달 AI 및 기초모델 분야로 확장 가능한 핵심 표현 학습 기술을 습득할 수 있음\n○ 대조 학습, 마스크 모델링, 예측 학습 등 최신 연구 분야를 집중적으로 다룸\n○ 최신 대표 모델(MAE, VideoMAE, V-JEPA)을 사례 중심으로 분석하여 실제 연구 적용 능력을 배양함\n○ 학생 주도형 세미나를 통해 논문 분석 능력 및 학술 발표 역량을 강화함\n○ 최신 국제 학회(CVPR, ICCV, ECCV, NeurIPS, ICLR 등)의 연구 동향을 직접 학습할 수 있음\n○ 이론 학습과 연구 논문 분석을 병행하여 연구 수행 능력과 비판적 사고 능력을 동시에 향상시킬 수 있음",
+    "effects": "○ Representation Learning의 이론적 기반과 최신 연구 동향에 대한 이해도 향상\n○ 제한된 데이터 환경에서의 효율적인 학습 방법론 설계 능력 배양\n○ 최신 인공지능 연구 논문을 독립적으로 분석하고 비판적으로 평가하는 역량 강화\n○ 연구 결과를 논리적으로 정리하고 발표하는 학술 커뮤니케이션 능력 향상\n○ Foundation Model 기반 차세대 인공지능 연구를 수행할 수 있는 기초 연구 역량 확보\n○ 자기주도 학습 및 협업 능력 향상\n○ 향후 석·박사 연구 및 국제 학술대회 논문 연구 수행 역량 강화",
+    "summaryKo": "본 교과목은 제한된 라벨 환경에서의 학습 문제를 해결하기 위한 다양한 Representation Learning 기법을 심도 있게 다룬다. Self-Supervised Learning, Weakly Supervised Learning, Semi-Supervised Learning을 중심으로 데이터 효율적인 학습 방법론과 그 이론적 기반을 학습한다. 특히 Contrastive Learning, Masked Modeling, Predictive Learning 등 최근 인공지능 분야에서 핵심적으로 활용되는 표현 학습 기법을 탐구하고, MAE, VideoMAE, V-JEPA와 같은 최신 모델을 사례로 분석한다. 강의 후반부는 수강생 주도의 세미나 형태로 진행되며, 최신 연구 논문을 비판적으로 분석하고 발표함으로써 연구 수행 능력과 학문적 통찰력을 함양하는 것을 목표로 한다.",
+    "summaryEn": "This course focuses on advanced representation learning techniques for learning from limited or unlabeled data. It covers self-supervised, weakly supervised, and semi-supervised learning paradigms, with an emphasis on data-efficient learning and theoretical foundations. Students will explore modern approaches such as contrastive learning, masked modeling, and predictive learning, along with recent models including MAE, VideoMAE, and V-JEPA. The latter part of the course consists of student-led seminars, where participants critically review and present recent research papers, aiming to develop research skills and analytical thinking.",
+    "goals": "○ Representation Learning의 기본 개념과 이론적 배경을 이해한다.\n○ Self-Supervised, Semi-Supervised, Weakly Supervised Learning 기법의 차이점과 특징을 설명할 수 있다.\n○ Contrastive Learning, Masked Modeling, Predictive Learning 알고리즘을 이해하고 활용할 수 있다.\n○ MAE, VideoMAE, V-JEPA 등 최신 모델의 구조와 학습 원리를 분석할 수 있다.\n○ 최신 연구 논문을 비판적으로 분석하고 연구 아이디어를 도출할 수 있다."
+   },
+   "strategy": {
+    "pre": "○ 강의 자료 및 논문을 사전 학습\n○ 핵심 개념 및 수학적 배경 이론 복습\n○ 주요 논문의 초록(Abstract) 및 핵심 아이디어 사전 검토",
+    "inClass": "○ 핵심 이론 강의\n○ 최신 연구 사례 분석\n○ 논문 리뷰 및 토론\n○ 문제 해결 및 질의응답\n○ 학생 발표 및 피드백",
+    "post": "○ 강의 내용 복습\n○ 논문 정리 및 요약\n○ 발표 자료 보완\n○ 추가 읽기 자료 학습\n○ 연구 아이디어 도출 및 토론",
+    "evalItems": [
+     {
+      "name": "출석",
+      "pct": 10,
+      "desc": "수업 참여도 및 출석 성실성"
+     },
+     {
+      "name": "중간고사",
+      "pct": 30,
+      "desc": "Representation Learning 핵심 이론 이해도 및 응용 능력 평가"
+     },
+     {
+      "name": "기말고사",
+      "pct": 30,
+      "desc": "최신 표현 학습 기법에 대한 종합적인 이해도 평가"
+     },
+     {
+      "name": "학습참여도",
+      "pct": 30,
+      "desc": "논문 발표, 세미나 참여도, 토론 참여도 및 발표 완성도 평가"
+     }
+    ],
+    "evalCriteria": "",
+    "textbook": "강의자료 중심",
+    "subTextbook": "강의자료 중심",
+    "etc": ""
+   },
+   "weeks": [
+    {
+     "topic": "Representation Learning 기초: Feature Learning, Information Theory 관점",
+     "pre": "기초학습",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 1,
+     "type": "영상"
+    },
+    {
+     "topic": "Self-Supervised Learning 개요 및 Pretext Task",
+     "pre": "Jigsaw, Rotation, Colorization, Inpainting",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 2,
+     "type": "영상"
+    },
+    {
+     "topic": "Contrastive Learning I",
+     "pre": "SimCLR, MoCo",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 3,
+     "type": "영상"
+    },
+    {
+     "topic": "Contrastive Learning II",
+     "pre": "BYOL, Non-contrastive methods",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 4,
+     "type": "영상"
+    },
+    {
+     "topic": "Semi-Supervised Learning: Pseudo-labeling, Consistency Regularization",
+     "pre": "Pseudo-labeling, Consistency Regularization",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 5,
+     "type": "영상"
+    },
+    {
+     "topic": "Weakly Supervised Learning",
+     "pre": "CAM 기반 방법",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 6,
+     "type": "영상"
+    },
+    {
+     "topic": "Masked Modeling I",
+     "pre": "Masked Modeling I",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 7,
+     "type": "영상"
+    },
+    {
+     "topic": "중간고사",
+     "pre": "중간고사",
+     "intro": "",
+     "deep": "",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 200,
+     "no": 8,
+     "type": "시험"
+    },
+    {
+     "topic": "Masked Modeling II",
+     "pre": "MAE, VideoMAE",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 9,
+     "type": "영상"
+    },
+    {
+     "topic": "Predictive Learning",
+     "pre": "JEPA, V-JEPA",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 10,
+     "type": "영상"
+    },
+    {
+     "topic": "최신 논문 세미나 1",
+     "pre": "세미나 준비",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 11,
+     "type": "영상"
+    },
+    {
+     "topic": "최신 논문 세미나 2",
+     "pre": "세미나 준비",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 12,
+     "type": "영상"
+    },
+    {
+     "topic": "최신 논문 세미나 3",
+     "pre": "세미나 준비",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 13,
+     "type": "영상"
+    },
+    {
+     "topic": "최신 논문 세미나 4",
+     "pre": "세미나 준비",
+     "intro": "온라인 수업 내용 간단히 리뷰 (30분)",
+     "deep": "주요 내용 정리 (130분)",
+     "wrap1": "논의 (20분)",
+     "wrap2": "다음주 내용 공유 (20분)",
+     "minutes": 200,
+     "no": 14,
+     "type": "영상"
+    },
+    {
+     "topic": "기말고사",
+     "pre": "기말고사",
+     "intro": "",
+     "deep": "",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": 200,
+     "no": 15,
+     "type": "시험"
+    },
+    {
+     "topic": "",
+     "pre": "",
+     "intro": "",
+     "deep": "",
+     "wrap1": "",
+     "wrap2": "",
+     "minutes": "",
+     "no": 16,
+     "type": "없음"
+    }
+   ]
+  }
+ }
+]
