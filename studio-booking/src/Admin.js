@@ -18,8 +18,7 @@ function apiAdminData() {
   var studios = {};
   var studioList = loadStudios(true);
   studioList.forEach(function (s) { studios[s.code] = s; });
-  var selected = {};
-  Db.rows(SHEETS.SELECTED).forEach(function (r) { if (r['이메일']) selected[String(r['이메일']).toLowerCase().trim()] = true; });
+  var selected = selectedProfessors();
 
   var all = allBookings();
   var sem = Rules.semesterOf(now.date, loadSemesters());

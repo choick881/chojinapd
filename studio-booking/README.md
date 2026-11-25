@@ -17,6 +17,7 @@
 - 설치: [docs/배포가이드.md](docs/배포가이드.md)
 - 운영: [docs/운영매뉴얼.md](docs/운영매뉴얼.md)
 - 정의서 검토: [docs/기능정의서_검토의견.md](docs/기능정의서_검토의견.md)
+- 이용수칙 샘플(화면·게시용): [docs/이용수칙_샘플.md](docs/이용수칙_샘플.md)
 - 화면 캡처: [docs/screenshots](docs/screenshots)
 
 ## 폴더 구조

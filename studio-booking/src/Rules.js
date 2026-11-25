@@ -31,7 +31,8 @@ var Rules = (function () {
     checkinEarlyMin: 10,        // 시작 10분 전부터 체크인
     sanctionThreshold: 2,       // 학기 노쇼 2회
     sanctionDays: 30,           // 1개월(30일) 예약 제한
-    maxAdvanceDays: null,       // 예약 가능 기간(일). null = 제한 없음
+    maxAdvanceDays: 28,         // 일반 이용자 예약 가능 기간(일). null = 제한 없음
+    selectedAdvanceDays: 56,    // 선정 교수 예약 가능 기간(일) — 예약 우선권
     personalYears: 2,           // 개인정보 보관
     historyYears: 10,           // 업무 이력 보관
   };
@@ -75,10 +76,17 @@ var Rules = (function () {
     return w !== 0 && w !== 6 && !isHoliday(date, holidays);
   }
 
+  /** 이용자에게 적용할 예약 가능 일수 (선정 교수는 더 먼 날짜까지 = 우선권). null = 제한 없음 */
+  function advanceDays(c, selected) {
+    c = c || DEFAULTS;
+    if (selected && c.selectedAdvanceDays) return Math.max(c.selectedAdvanceDays, c.maxAdvanceDays || 0);
+    return c.maxAdvanceDays || null;
+  }
+
   /**
    * 예약 요청 검증
    * @param req {studioId,date,startMin,endMin,support,agreedPrivacy,agreedRules}
-   * @param ctx {now:{date,min}, config, holidays[], busy[], sameDayBookings[], sanctionUntil}
+   * @param ctx {now:{date,min}, config, holidays[], busy[], sameDayBookings[], sanctionUntil, selected}
    *   busy: 해당 스튜디오·날짜의 점유 구간(캘린더 기준), sameDayBookings: 본인의 같은 날 점유 예약
    * @return {ok:boolean, errors:string[]}
    */
@@ -98,8 +106,10 @@ var Rules = (function () {
       e.push('운영시간(' + fmtMin(c.openMin) + '~' + fmtMin(c.closeMin) + ') 안에서만 예약할 수 있습니다.');
     }
     if (!before(ctx.now, req.date, s)) e.push('이미 지난 시간은 예약할 수 없습니다.');
-    if (c.maxAdvanceDays && req.date > addDays(ctx.now.date, c.maxAdvanceDays)) {
-      e.push('오늘부터 ' + c.maxAdvanceDays + '일 이내만 예약할 수 있습니다.');
+    var adv = advanceDays(c, ctx.selected);
+    if (adv && req.date > addDays(ctx.now.date, adv)) {
+      e.push('오늘부터 ' + adv + '일(' + Math.round(adv / 7) + '주) 이내만 예약할 수 있습니다.' +
+        (!ctx.selected && c.selectedAdvanceDays > adv ? ' (선정 교수는 ' + c.selectedAdvanceDays + '일까지)' : ''));
     }
     if (ctx.sanctionUntil && ctx.now.date <= ctx.sanctionUntil) {
       e.push('노쇼 누적으로 ' + ctx.sanctionUntil + '까지 예약이 제한됩니다. 담당자에게 문의해 주세요.');
@@ -253,7 +263,7 @@ var Rules = (function () {
     STATUS: STATUS, OCCUPYING: OCCUPYING, DEFAULTS: DEFAULTS,
     toMin: toMin, fmtMin: fmtMin, addDays: addDays, addYears: addYears, weekday: weekday,
     daysInMonth: daysInMonth, overlaps: overlaps, isHoliday: isHoliday, isWorkday: isWorkday,
-    validateRequest: validateRequest, canUserModify: canUserModify,
+    advanceDays: advanceDays, validateRequest: validateRequest, canUserModify: canUserModify,
     noShowDeadlineMin: noShowDeadlineMin, isNoShowDue: isNoShowDue, canCheckin: canCheckin,
     semesterOf: semesterOf, sanctionAfterNoShow: sanctionAfterNoShow,
     retentionDates: retentionDates, monthlyStats: monthlyStats,

@@ -19,6 +19,10 @@
       var s = $('#sanction'); s.hidden = false;
       s.textContent = '노쇼 누적으로 ' + d.sanctionUntil + '까지 새 예약이 제한됩니다. 사정이 있었다면 담당자(' + d.contact + ')에게 문의해 주세요.';
     }
+    if (d.isSelected && cfg().selectedAdvanceDays) {
+      var w = $('#who');
+      w.innerHTML = esc(d.email) + ' 계정으로 이용 중 <span class="pill sel">선정 교수 · ' + cfg().maxAdvanceDays + '일 앞까지 우선 예약</span>';
+    }
     renderStudios();
     var di = $('#date');
     di.min = today();
@@ -51,17 +55,22 @@
 
   function renderRules() {
     var c = cfg();
+    var adv = c.generalAdvanceDays ? '오늘부터 ' + c.generalAdvanceDays + '일(' + Math.round(c.generalAdvanceDays / 7) + '주) 앞까지 예약할 수 있습니다.' : '예약 가능 기간에 제한이 없습니다.';
+    if (c.selectedAdvanceDays && c.selectedAdvanceDays > (c.generalAdvanceDays || 0)) {
+      adv += ' 플립러닝 개발 선정 교수는 ' + c.selectedAdvanceDays + '일(' + Math.round(c.selectedAdvanceDays / 7) + '주) 앞까지 먼저 예약할 수 있습니다.';
+    }
     var items = [
-      '예약 시작 ' + c.checkinEarlyMin + '분 전부터 스튜디오에 붙은 QR 코드로 체크인합니다. 시작 후 ' + c.noShowGraceMin +
+      '[예약] ' + adv + ' 1인 1일 최대 ' + dur(c.dailyMaxMin) + ', 30분 단위로 예약합니다.',
+      '[체크인] 시작 ' + c.checkinEarlyMin + '분 전부터 스튜디오 출입문의 QR 코드로 체크인합니다. 시작 후 ' + c.noShowGraceMin +
         '분(짧은 예약은 종료 시각) 안에 체크인하지 않으면 노쇼로 처리됩니다.',
-      '취소·변경은 이용 전날 ' + fmtMin(c.deadlineMin) + '까지 직접 할 수 있습니다. 그 이후 취소나 미이용은 노쇼입니다.',
-      '학기 중 노쇼 ' + c.sanctionThreshold + '회부터 ' + c.sanctionDays + '일 동안 예약이 제한됩니다.',
-      '1인 1일 최대 ' + dur(c.dailyMaxMin) + '까지 예약할 수 있습니다.',
-      '장비 설정을 임의로 바꾸지 말고, 사용 후 전원을 끄고 처음 상태로 정리해 주세요.',
-      '음식물은 반입하지 않습니다.',
-      '장비 이상이나 파손을 발견하면 바로 담당자(' + S.d.contact + ')에게 알려 주세요.',
-      '야간 이용: 담당자 근무시간(평일 ' + fmtMin(c.supportStartMin) + '~' + fmtMin(c.supportEndMin) +
-        ') 외에 이용하는 동안 발생한 장비 도난·파손은 이용자 책임입니다.',
+      '[취소·변경] 이용 전날 ' + fmtMin(c.deadlineMin) + '까지 ‘내 예약’에서 직접 할 수 있습니다. 그 이후의 취소나 미이용은 노쇼입니다.',
+      '[노쇼 제재] 학기 중 노쇼 ' + c.sanctionThreshold + '회부터 ' + c.sanctionDays + '일 동안 새 예약이 제한됩니다. 이미 잡아 둔 예약은 유지됩니다.',
+      '[본인 이용] 예약한 본인(또는 함께 촬영하는 사람)만 이용하며, 예약을 다른 사람에게 넘기지 않습니다.',
+      '[장비] 카메라·조명·녹화기 설정을 임의로 바꾸거나 장비를 밖으로 가져가지 않습니다. 이상이나 파손을 발견하면 바로 담당자(' + S.d.contact + ')에게 알립니다.',
+      '[정리] 사용 후 장비 전원을 끄고 처음 상태로 정리합니다. 녹화 파일은 개인 저장장치로 옮기고 장비에 남은 파일은 지웁니다. 음식물은 반입하지 않습니다.',
+      '[야간·주말 이용] 담당자 근무시간(평일 ' + fmtMin(c.supportStartMin) + '~' + fmtMin(c.supportEndMin) +
+        ') 외에 이용하는 동안 발생한 장비 도난·파손은 이용자 책임입니다. 나갈 때 문이 잠겼는지 확인합니다.',
+      '[안전] 화재·누전 등 위험 상황에서는 촬영을 멈추고 즉시 대피한 뒤 담당자에게 알립니다.',
     ];
     $('#rulesList').innerHTML = items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
   }

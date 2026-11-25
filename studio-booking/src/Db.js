@@ -151,7 +151,8 @@ var CONFIG_KEYS = [
   ['체크인 허용(시작 전 분)', 'checkinEarlyMin', 'number', '10', '시작 몇 분 전부터 체크인 가능'],
   ['노쇼 제재 기준(학기 누적 회)', 'sanctionThreshold', 'number', '2', '이 횟수에 도달하면 예약 제한'],
   ['제재 기간(일)', 'sanctionDays', 'number', '30', '예약 제한 일수'],
-  ['최대 예약 가능 일수', 'maxAdvanceDays', 'number', '', '비워 두면 제한 없음. 예) 28 = 4주 앞까지'],
+  ['최대 예약 가능 일수', 'maxAdvanceDays', 'number', '28', '일반 이용자: 오늘부터 며칠 앞까지 예약 가능(28 = 4주). 비우면 제한 없음'],
+  ['선정 교수 예약 가능 일수', 'selectedAdvanceDays', 'number', '56', "예약 우선권: '선정교수' 탭에 있는 교수는 이 일수까지(56 = 8주)"],
 ];
 var CONFIG_TEXT = [
   ['학교 도메인', 'domain', 'hanyang.ac.kr', '이 도메인 계정만 이용 가능. 비워 두면 배포 설정(도메인 제한)만 사용'],
@@ -160,7 +161,7 @@ var CONFIG_TEXT = [
   ['담당자 알림 메일', 'staffEmail', '', '촬영 지원 요청이 오면 알림 받을 주소(쉼표로 여러 개)'],
   ['웹앱 주소', 'webUrl', '', '배포 후 /exec 로 끝나는 주소를 붙여 넣으세요(메일·QR 링크에 사용)'],
   ['전날 리마인더 메일(Y/N)', 'reminder', 'Y', '이용 전날 15시에 안내 메일 발송'],
-  ['촬영 유형', 'shootTypes', 'PIP(화면+강의자), 강의자 단독, 화면 녹화, 기타', '쉼표로 구분 — 현행 선택지로 바꿔 주세요'],
+  ['촬영 유형', 'shootTypes', '일반 강의, 태블릿 판서 강의, 기타', '쉼표로 구분'],
   ['용도', 'purposes', '플립러닝 개발, 일반 강의, 직무·기타', '쉼표로 구분'],
 ];
 
@@ -172,7 +173,7 @@ function loadConfig() {
   CONFIG_KEYS.forEach(function (d) {
     var v = map[d[0]];
     if (v === undefined) return;
-    if (v === '') { if (d[1] === 'maxAdvanceDays') c[d[1]] = null; return; }
+    if (v === '') { if (d[1] === 'maxAdvanceDays' || d[1] === 'selectedAdvanceDays') c[d[1]] = null; return; }
     if (d[2] === 'time') c[d[1]] = Rules.toMin(v);
     else if (d[2] === 'hours') c[d[1]] = Math.round(Number(v) * 60);
     else c[d[1]] = Number(v);

@@ -12,7 +12,7 @@ const kst = (s) => s + ':00+09:00';
 function form(o) {
   return Object.assign({
     studioId: 'ST01', date: '2026-12-02', startMin: 600, endMin: 660, support: false,
-    name: '김교수', org: '경영대학', shootType: 'PIP(화면+강의자)', purpose: '플립러닝 개발',
+    name: '김교수', org: '경영대학', shootType: '일반 강의', purpose: '플립러닝 개발',
     agreedPrivacy: true, agreedRules: true,
   }, o);
 }
@@ -129,6 +129,31 @@ test('촬영 지원 요청 → 임시 점유·담당자 알림 → 담당자가 
   assert.equal(evs.length, 1);
   assert.match(evs[0].title, /^\[확정\]/);
   assert.match(mailsTo(env, B).pop().subject, /촬영 지원 예약이 확정/);
+});
+
+test('선정 교수 예약 우선권: 일반 4주, 선정 교수 8주', () => {
+  const env = fresh();
+  env.ss().getSheetByName('선정교수').appendRow([A.toUpperCase(), '2027-1학기', '경영통계', '']); // 대소문자 무시
+  env.as(A);
+  const boot = env.call('apiBootstrap');
+  assert.equal(boot.isSelected, true);
+  assert.equal(boot.config.maxAdvanceDays, 56);
+  assert.equal(env.call('apiCreateBooking', form({ date: '2027-01-20' })).status, '확정'); // 51일 뒤
+  assert.throws(() => env.call('apiCreateBooking', form({ date: '2027-01-26' })), /56일/);
+  env.as(B);
+  assert.equal(env.call('apiBootstrap').config.maxAdvanceDays, 28);
+  assert.throws(() => env.call('apiCreateBooking', form({ date: '2027-01-20', startMin: 720, endMin: 780 })), /28일/);
+  assert.equal(env.call('apiCreateBooking', form({ date: '2026-12-28' })).status, '확정');
+  env.as(OWNER);
+  assert.equal(env.call('apiAdminData').upcoming.find((b) => b.email === A), undefined); // 14일 밖
+});
+
+test('촬영 유형은 설정된 3종만 허용', () => {
+  const env = fresh();
+  env.as(A);
+  assert.deepEqual(Array.from(env.call('apiBootstrap').shootTypes), ['일반 강의', '태블릿 판서 강의', '기타']);
+  assert.throws(() => env.call('apiCreateBooking', form({ shootType: 'PIP(화면+강의자)' })), /촬영 유형/);
+  assert.equal(env.call('apiCreateBooking', form({ shootType: '태블릿 판서 강의' })).status, '확정');
 });
 
 test('지원 요청 반려 → 일정 삭제·사유 메일, 사유 없으면 거부', () => {

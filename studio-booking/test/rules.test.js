@@ -85,7 +85,20 @@ test('최대 예약 가능 일수(설정 시에만)', () => {
   const cfg = Object.assign({}, C, { maxAdvanceDays: 7 });
   assert.equal(errs(req({ date: '2026-12-07' }), ctx({ config: cfg })).length, 0);
   assert.ok(errs(req({ date: '2026-12-08' }), ctx({ config: cfg })).length);
-  assert.equal(errs(req({ date: '2027-06-30' }), ctx()).length, 0); // 기본값: 제한 없음
+  const none = Object.assign({}, C, { maxAdvanceDays: null, selectedAdvanceDays: null });
+  assert.equal(errs(req({ date: '2027-06-30' }), ctx({ config: none })).length, 0); // 비우면 제한 없음
+});
+
+test('예약 가능 기간: 일반 28일(4주), 선정 교수 56일(8주) 우선권', () => {
+  // 오늘 2026-11-30 → 일반 2026-12-28까지, 선정 2027-01-25까지
+  assert.equal(errs(req({ date: '2026-12-28' }), ctx()).length, 0);
+  const e = errs(req({ date: '2026-12-29' }), ctx());
+  assert.ok(e.length && /28일/.test(e[0]) && /선정 교수는 56일/.test(e[0]), e.join());
+  assert.equal(errs(req({ date: '2026-12-29' }), ctx({ selected: true })).length, 0);
+  assert.equal(errs(req({ date: '2027-01-25' }), ctx({ selected: true })).length, 0);
+  assert.ok(errs(req({ date: '2027-01-26' }), ctx({ selected: true })).length);
+  assert.equal(R.advanceDays(C, false), 28);
+  assert.equal(R.advanceDays(C, true), 56);
 });
 
 test('본인 취소·수정은 이용 전날 18:00까지', () => {

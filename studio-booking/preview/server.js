@@ -15,7 +15,7 @@ function seed(env) {
   env.call('setup');
   env.setConfig('담당자 알림 메일', 'staff@hanyang.ac.kr');
   const f = (o) => Object.assign({ studioId: 'ST01', date: '2026-12-02', startMin: 600, endMin: 660, support: false,
-    name: '박교수', org: '자연과학대학', shootType: 'PIP(화면+강의자)', purpose: '플립러닝 개발', agreedPrivacy: true, agreedRules: true }, o);
+    name: '박교수', org: '자연과학대학', shootType: '일반 강의', purpose: '플립러닝 개발', agreedPrivacy: true, agreedRules: true }, o);
   env.as('prof.park@hanyang.ac.kr');
   env.call('apiCreateBooking', f({ startMin: 600, endMin: 720 }));
   env.call('apiCreateBooking', f({ studioId: 'ST09', date: '2026-12-01', startMin: 840, endMin: 960, support: true }));

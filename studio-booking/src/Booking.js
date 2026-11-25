@@ -23,6 +23,18 @@ function requireAdmin() {
   return email;
 }
 
+/** '선정교수' 탭 이메일 목록(소문자) → {email:true}. 예약 우선권과 담당자 화면 표시에 사용 */
+function selectedProfessors() {
+  var map = {};
+  Db.rows(SHEETS.SELECTED).forEach(function (r) {
+    var e = String(r['이메일'] || '').toLowerCase().trim();
+    if (e) map[e] = true;
+  });
+  return map;
+}
+
+function isSelectedProfessor(email) { return !!selectedProfessors()[email]; }
+
 /* ---------- 스튜디오 ---------- */
 
 function loadStudios(includeInactive) {
@@ -152,16 +164,19 @@ function apiBootstrap() {
   var now = nowKst();
   var mine = allBookings().filter(function (b) { return b.email === email; });
   var last = mine[mine.length - 1];
-  var horizon = Rules.addDays(now.date, cfg.maxAdvanceDays || 180);
+  var selected = isSelectedProfessor(email);
+  var adv = Rules.advanceDays(cfg, selected);
+  var horizon = Rules.addDays(now.date, adv || 180);
   return {
     email: email,
     name: last ? last.name : '',
     org: last ? last.org : '',
     isAdmin: isAdmin(email),
+    isSelected: selected,
     studios: loadStudios(false).map(publicStudio),
     config: {
       openMin: cfg.openMin, closeMin: cfg.closeMin, slotMin: cfg.slotMin, dailyMaxMin: cfg.dailyMaxMin,
-      supportStartMin: cfg.supportStartMin, supportEndMin: cfg.supportEndMin, maxAdvanceDays: cfg.maxAdvanceDays,
+      supportStartMin: cfg.supportStartMin, supportEndMin: cfg.supportEndMin, maxAdvanceDays: adv, generalAdvanceDays: cfg.maxAdvanceDays, selectedAdvanceDays: cfg.selectedAdvanceDays,
       deadlineMin: cfg.deadlineMin, noShowGraceMin: cfg.noShowGraceMin, checkinEarlyMin: cfg.checkinEarlyMin,
       sanctionThreshold: cfg.sanctionThreshold, sanctionDays: cfg.sanctionDays,
     },
@@ -230,6 +245,7 @@ function apiCreateBooking(form) {
         return b.email === email && b.date === req.date && isOccupying(b) && (!old || b.id !== old.id);
       }),
       sanctionUntil: activeSanctionUntil(email, now.date),
+      selected: isSelectedProfessor(email),
     });
     if (!check.ok) throw new Error(check.errors.join('\n'));
 
