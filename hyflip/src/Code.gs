@@ -1,5 +1,6 @@
 /**
- * HY FLIP 플립러닝 콘텐츠 개발 신청 모듈 (v1.0.2)
+ * HY FLIP 플립러닝 콘텐츠 개발 신청 모듈 (v1.0.3)
+ * - v1.0.3: 주차마다 유형(영상·오프라인·시험·없음)을 고르고, 영상 개발 주차 수를 자동 계산합니다.
  * - v1.0.2: 대리신청 기능 삭제. 책임교수 본인 계정으로만 신청·수정·제출할 수 있습니다.
  * - 데이터 시트: HYFLIP_신청시스템_데이터시트_v1.0 (구글 시트로 변환한 것)
  * - 이 스크립트는 그 시트에 "확장 프로그램 > Apps Script"로 만든 바인딩 스크립트입니다.
@@ -278,6 +279,24 @@ function searchCourses(q) {
 
 /* ───────────────────────── 제출 ───────────────────────── */
 
+/* 주차 유형: 영상(플립) / 오프라인 / 시험 / 없음(운영 안 함).
+ * v1.0.3 이전 저장본처럼 유형이 없으면 8·16주차는 시험, 나머지는 영상으로 봅니다. */
+const WEEK_TYPES = ['영상', '오프라인', '시험', '없음'];
+function weekType_(w, i) {
+  const t = w && w.type;
+  if (WEEK_TYPES.indexOf(t) !== -1) return t;
+  return (i === 7 || i === 15) ? '시험' : '영상';
+}
+/** 영상 개발 주차 수: 유형이 '영상'인 주차 수. 유형이 하나도 없는 예전 저장본은 직접 입력한 값을 씁니다. */
+function videoWeeks_(data) {
+  const weeks = data.weeks || [];
+  const typed = weeks.some(function (w) { return w && WEEK_TYPES.indexOf(w.type) !== -1; });
+  if (!typed) return Number((data.basic || {}).videoWeeks) || 0;
+  let n = 0;
+  for (let i = 0; i < 16; i++) if (weekType_(weeks[i], i) === '영상') n++;
+  return n;
+}
+
 function validate_(data, cfg) {
   const e = [];
   const b = data.basic || {}, o = data.overview || {}, s = data.strategy || {};
@@ -288,7 +307,8 @@ function validate_(data, cfg) {
     if (!String(b[f[0]] || '').trim()) e.push('기본정보: ' + f[1] + '을(를) 입력해 주세요.');
   });
   const minW = minWeeks_(cfg, b.classType);
-  if (!(Number(b.videoWeeks) >= minW)) e.push('영상 개발 주차 수는 ' + (b.classType || '선택한 유형') + ' 기준 ' + minW + '주 이상이어야 합니다.');
+  const vw = videoWeeks_(data);
+  if (!(vw >= minW)) e.push('영상 개발 주차 수는 ' + (b.classType || '선택한 유형') + ' 기준 ' + minW + '주 이상이어야 합니다(현재 ' + vw + '주).');
   [['purpose', '교육목적 및 필요성'], ['features', '교과목 특징 및 장점'], ['effects', '기대효과'],
    ['summaryKo', '과목개요(국문)'], ['goals', '학습목표']].forEach(function (f) {
     if (!String(o[f[0]] || '').trim()) e.push('교과목 개요: ' + f[1] + '을(를) 입력해 주세요.');
@@ -300,8 +320,8 @@ function validate_(data, cfg) {
   if (sum !== 100) e.push('평가항목 반영비율 합계가 100%가 아닙니다(현재 ' + sum + '%).');
   const weeks = data.weeks || [];
   for (let i = 1; i <= 16; i++) {
-    const w = weeks[i - 1] || {};
-    if (i !== 8 && i !== 16 && !String(w.topic || '').trim()) { e.push('주차별 설계: ' + i + '주차 학습주제를 입력해 주세요.'); }
+    const w = weeks[i - 1] || {}, t = weekType_(w, i - 1);
+    if ((t === '영상' || t === '오프라인') && !String(w.topic || '').trim()) { e.push('주차별 설계: ' + i + '주차 학습주제를 입력해 주세요.'); }
   }
   return e;
 }
@@ -313,6 +333,7 @@ function submitApp(payload) {
   const data = payload.data || {};
   data.basic = data.basic || {};
   data.basic.semester = String(cfg['모집학기'] || '');
+  data.basic.videoWeeks = videoWeeks_(data);            // 주차 유형에서 계산한 값으로 저장
   const errors = validate_(data, cfg);
   if (errors.length) return { ok: false, errors: errors };
 

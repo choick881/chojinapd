@@ -132,3 +132,28 @@ test('[v1.0.2] 첫 화면에 대리신청 체크박스가 없고 로그인 계�
   assert.doesNotMatch(out, /data-p="proxy"|대리신청합니다/);
   assert.match(out, /prof\.a@hanyang\.ac\.kr/);
 });
+
+test('[v1.0.3] 주차 유형을 바꾸면 영상 주차 수가 다시 계산되고, 8주 미만이면 다음으로 넘어가지 않는다', async () => {
+  const env = boot({ delayMs: 5 });
+  await wait(30);
+  env.js('newApp(); S.data.basic.classType = "Smart-F";');
+  assert.equal(env.js('videoCount(S.data)'), 14);
+  env.js('S.step = 4; render();');
+  assert.match(env.els.app.innerHTML, /영상 개발 주차: <b id="videoCount">14주<\/b>/);
+  assert.match(env.els.app.innerHTML, /data-p="weeks\.0\.type"/);
+  env.js('for (let i = 0; i < 16; i++) S.data.weeks[i].topic = S.data.weeks[i].topic || "주제" + (i + 1);');
+  env.js('[0,1,2,3,4,5,6].forEach(i => S.data.weeks[i].type = "오프라인"); render();');
+  assert.equal(env.js('videoCount(S.data)'), 7);
+  assert.ok(env.js('stepErrors(4)').some(e => e.includes('현재 7주')));
+  env.js('S.data.weeks[0].type = "영상"');
+  assert.equal(env.js('stepErrors(4)').length, 0);
+});
+
+test('[v1.0.3] 시험 주차로 바꾸면 학습주제가 필수가 아니다', async () => {
+  const env = boot({ delayMs: 5 });
+  await wait(30);
+  env.js('newApp(); S.data.basic.classType = "Smart-F";');
+  env.js('for (let i = 0; i < 16; i++) S.data.weeks[i].topic = "주제";');
+  env.js('S.data.weeks[6].type = "시험"; S.data.weeks[6].topic = ""; S.data.weeks[7].type = "영상";');
+  assert.equal(env.js('stepErrors(4)').length, 0);
+});

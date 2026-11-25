@@ -56,3 +56,46 @@ test('[샘플] 임시저장 → 다시 열기 하면 긴 본문과 16주 설계�
   assert.equal(back.data.weeks.length, 16);
   assert.equal(back.data.weeks[13].topic, d.weeks[13].topic);
 });
+
+/* ── v1.0.3: 주차 유형과 영상 주차 자동 계산 ── */
+
+test('[v1.0.3] 원본 주차 구성 그대로 제출된다 (7주차 중간·15주 운영·16주차 기말과제 평가)', () => {
+  const env = load();
+  ['샘플A_문화산업회계', '샘플C_지속가능경영시스템', '샘플D_고급표현학습(대학원)'].forEach(label => {
+    const s = samples.find(x => x.label === label);
+    const r = env.g.submitApp({ id: '', data: copy(s.data) });
+    assert.equal(r.ok, true, label + ': ' + JSON.stringify(r.errors));
+  });
+  const vw = env.sheet('신청목록').records().map(r => r['영상주차수']);
+  assert.deepEqual(vw, [13, 8, 13]);
+});
+
+test('[v1.0.3] 영상 주차는 직접 적은 숫자가 아니라 주차 유형으로 계산한다', () => {
+  const env = load();
+  const b = copy(samples.find(x => x.label === '샘플B_아동건강간호').data);
+  b.basic.videoWeeks = 99;                                   // 숫자를 부풀려도
+  const r = env.g.submitApp({ id: '', data: b });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some(e => e.includes('현재 4주')), JSON.stringify(r.errors));
+});
+
+test('[v1.0.3] 시험·운영 안 함 주차는 주제가 비어도 되고, 영상·오프라인 주차는 주제가 필수다', () => {
+  const env = load();
+  const d = copy(samples.find(x => x.label === '샘플D_고급표현학습(대학원)').data);
+  d.weeks[15].topic = '';                                    // 16주차 '없음'
+  d.weeks[7].topic = '';                                     // 8주차 '시험'
+  assert.equal(env.g.validate_(d, env.g.getConfig_()).length, 0);
+  d.weeks[10].topic = '';                                    // 11주차 '영상'
+  assert.ok(env.g.validate_(d, env.g.getConfig_()).some(e => e.includes('11주차')));
+});
+
+test('[v1.0.3] 유형이 없는 예전 저장본은 8·16주차 시험 규칙과 직접 적은 영상 주차를 그대로 쓴다', () => {
+  const env = load();
+  const legacy = copy(samples.find(x => x.label === '샘플C_지속가능경영시스템').data);
+  legacy.weeks.forEach(w => { delete w.type; });
+  legacy.basic.videoWeeks = 8;
+  assert.equal(env.g.videoWeeks_(legacy), 8);
+  assert.equal(env.g.weekType_(legacy.weeks[7], 7), '시험');
+  assert.equal(env.g.weekType_(legacy.weeks[2], 2), '영상');
+  assert.equal(env.g.submitApp({ id: '', data: legacy }).ok, true);
+});

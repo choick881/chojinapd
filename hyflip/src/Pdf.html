@@ -106,7 +106,7 @@
     <tr><th style="width:6%">주차</th><th style="width:15%">학습주제</th><th style="width:22%">A. Pre-class<br>학습 내용 및 퀴즈</th><th>B. In-class</th><th style="width:8%">소요시간(분)</th></tr>
     <? w.forEach(function (x, i) { ?>
       <tr>
-        <td style="text-align:center"><?= i + 1 ?></td>
+        <td style="text-align:center"><?= i + 1 ?><? if (x.type) { ?><br><span class="small"><?= x.type === '없음' ? '미운영' : x.type ?></span><? } ?></td>
         <td class="pre"><?= x.topic || '' ?></td>
         <td class="pre"><?= x.pre || '' ?></td>
         <td class="pre"><? if (x.intro) { ?>④ 도입: <?= x.intro ?>

@@ -1,4 +1,4 @@
-# HY FLIP 신청 모듈 (v1.0.2)
+# HY FLIP 신청 모듈 (v1.0.3)
 
 플립러닝(Smart-F/B) 콘텐츠 개발 신청을 받는 구글 Apps Script 웹 앱입니다.
 
@@ -15,7 +15,7 @@
 
 ```bash
 cd hyflip
-npm test          # 29개 테스트, 인터넷·구글 계정 필요 없음
+npm test          # 35개 테스트, 인터넷·구글 계정 필요 없음
 npm run check     # 문법 검사만
 ```
 
