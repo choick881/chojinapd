@@ -8,6 +8,7 @@
 - 정의서 검토: [docs/기능정의서_검토의견.md](docs/기능정의서_검토의견.md)
 - 진행 계획: [docs/plans/PLAN_hyflip.md](docs/plans/PLAN_hyflip.md)
 - 2027-1 설정값: [docs/설정값_2027-1.md](docs/설정값_2027-1.md) · 시트 직접 입력: [docs/시트_직접입력_가이드.md](docs/시트_직접입력_가이드.md) · 변경내역: [v1.0.1](docs/변경내역_v1.0.1.md), [v1.0.3](docs/변경내역_v1.0.3.md)
+- ⭐ 실제 신청서 4건 기능 테스트 결과: [docs/테스트결과_실제신청서4건_2027-1.md](docs/테스트결과_실제신청서4건_2027-1.md)
 - 화면 캡처: [docs/screenshots](docs/screenshots) · 12/4 점검표: [docs/1204-checklist.html](docs/1204-checklist.html)
 
 ## 폴더 구조
@@ -39,6 +40,11 @@ npm run preview
 npm run shots
 ```
 → 신청 흐름을 자동으로 클릭해 점검하고 `docs/screenshots`에 캡처(모바일·태블릿·PC + 신청서 PDF). 문제가 있으면 목록을 출력하고 실패합니다.
+
+```bash
+npm run e2e:samples
+```
+→ 실제 신청서 4건(비식별)을 교수 4명이 화면에서 직접 입력·제출하고, 선정·미선정·보완요청·2년 뒤 삭제까지 확인(57개 항목). 캡처는 `docs/screenshots/samples`.
 
 GitHub에 올리면 `.github/workflows/hyflip-test.yml`이 같은 테스트를 자동으로 돌립니다.
 배포는 `.github/workflows/hyflip-deploy.yml`에서 버튼을 눌러야만 실행됩니다.

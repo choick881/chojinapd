@@ -8,6 +8,7 @@
     "check": "node scripts/check-syntax.js",
     "preview": "node preview/server.js",
     "shots": "node preview/shots.js",
+    "e2e:samples": "node preview/samples-e2e.js",
     "push": "clasp push",
     "deploy:test": "bash scripts/deploy.sh test",
     "deploy:prod": "bash scripts/deploy.sh prod",

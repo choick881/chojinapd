@@ -41,7 +41,7 @@ function setCfg(sheets, key, value) {
   if (row) row[1] = value; else sheets['설정'].push([key, value]);
 }
 
-function makeEnv() {
+function makeEnv(opts = {}) {
   const now = Date.now();
   const sheets = defaultSheets();
   // 2027-1 공문 설정값(docs/설정값_2027-1.md). 미리보기는 "지금"이 항상 신청기간 안이 되도록 시작일만 당깁니다.
@@ -77,8 +77,9 @@ function makeEnv() {
     return folder;
   };
 
-  // 시드: 김교수 — 제출 1건(샘플A) + 임시저장 1건(샘플C) / 박교수 — 제출 1건(샘플D, 다른 사람 신청 확인용)
   env.g.setup();
+  if (opts.seed === false) return env;   // 빈 시트로 시작 (실제 신청서 E2E 테스트용)
+  // 시드: 김교수 — 제출 1건(샘플A) + 임시저장 1건(샘플C) / 박교수 — 제출 1건(샘플D, 다른 사람 신청 확인용)
   env.setUser(DEFAULT_USER);
   const a = env.g.submitApp({ id: '', data: copy(samples[0].data) });
   if (!a.ok) throw new Error('시드 실패(샘플A): ' + a.errors.join(', '));
@@ -114,8 +115,8 @@ function stub() {
 // 가짜 드라이브 주소 → 미리보기 PDF 주소
 const localPdf = (s) => s.replace(/https:\/\/drive\.google\.com\/file\/d\/([-\w]+)\/view/g, '/__pdf/$1');
 
-function start(port) {
-  const env = makeEnv();
+function start(port, opts = {}) {
+  const env = makeEnv(opts);
   let user = DEFAULT_USER;
   const json = (res, obj) => { res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(obj, null, 2)); };
 
