@@ -144,6 +144,7 @@ const OTHER = 'prof.lee@hanyang.ac.kr';
   if (!m) problems.push('접수번호 표시 없음: ' + doneText);
   const doneAll = await p.textContent('#app');
   if (!/서약서는 따로 내지 않습니다/.test(doneAll) || /서약서 1부와 함께/.test(doneAll)) problems.push('완료 화면 개인정보서약서 안내가 11/25 결정과 다름');
+  if (!/PDF 마지막 쪽/.test(doneAll)) problems.push('완료 화면에 "동의 내역은 PDF 마지막 쪽" 안내 없음');
   await shot(p, '08-mobile-done', false);
   const mails = env.state.mails.slice(before);
   if (mails.length !== 1 || mails[0].to !== DEFAULT_USER || (mails[0].opt && mails[0].opt.cc)) {
