@@ -429,7 +429,7 @@ function doneView() {
     <div class="notice ok">접수번호 <b>${esc(r.id)}</b>${r.isNew ? ' · 접수 안내 메일을 보냈습니다.' : ''}</div>
     <h3>다음 할 일</h3>
     <ol><li><a href="${esc(r.pdf)}" target="_blank">신청서 PDF 열기</a> → 출력 후 서명</li>
-        <li>개인정보서약서 1부와 함께 소속 단과대학 RC 행정팀을 경유해 그룹웨어 공문으로 제출(수신: 교육혁신처 에듀테크혁신팀)</li>
+        <li>서명한 신청서 1부를 소속 단과대학 RC 행정팀을 경유해 그룹웨어 공문으로 제출(수신: 교육혁신처 에듀테크혁신팀). 개인정보 수집·이용 동의는 이 화면에서 받았으므로 <b>개인정보서약서는 따로 내지 않습니다.</b></li>
         <li>마감(${esc(INIT.deadline)}) 전까지 이 페이지에서 내용을 수정할 수 있습니다.</li></ol>
     <div class="btns"><span></span><button class="primary" onclick="goHome()">내 신청서 목록</button></div></div>`;
 }

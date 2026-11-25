@@ -52,6 +52,8 @@ function makeEnv() {
   setCfg(sheets, '개발기간종료', new Date('2027-02-19T00:00:00+09:00'));
   setCfg(sheets, '담당자연락처', '에듀테크혁신팀 02-2220-1406');
   setCfg(sheets, 'Smart-F 최소주차', 8);
+  setCfg(sheets, 'Smart-B 최소주차', 4);
+  setCfg(sheets, '학기종료일', new Date('2027-06-21T00:00:00+09:00'));
   samples.forEach((s) => sheets['개설과목'].push(s.courseRow));
   sheets['개설과목'].push(
     ['2027-1', 'EDU3021', '01', '교육공학 세미나', 'Seminar in Educational Technology', '교육공학과', 3, '3', '김교수'],
