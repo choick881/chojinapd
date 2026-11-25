@@ -44,7 +44,12 @@ const OTHER = 'prof.lee@hanyang.ac.kr';
   const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: scale });
   const p = await ctx.newPage(); watch(p);
   await p.goto(base + '/?as=' + DEFAULT_USER);
-  await p.waitForSelector('table tr td');
+  await p.waitForSelector('.app-card');
+  // 모바일은 표 대신 카드 목록
+  if (await p.isVisible('.app-table')) problems.push('모바일에서 내 신청서 표가 보임(카드여야 함)');
+  if ((await p.$$('.app-card')).length !== 2) problems.push('모바일 카드 개수 오류');
+  const cardBtnH = await p.$eval('.app-card .acts button', (b) => b.getBoundingClientRect().height);
+  if (cardBtnH < 36) problems.push('카드 버튼이 너무 작음: ' + cardBtnH + 'px');
   const homeText = await p.textContent('#app');
   if (!/FL-2027-1-001/.test(homeText) || !/\(미제출\)/.test(homeText)) problems.push('내 신청서 목록에 제출·미제출 건이 보이지 않음');
   if (/FL-2027-1-002/.test(homeText)) problems.push('다른 교수(박교수)의 신청서가 목록에 보임');
@@ -179,7 +184,8 @@ const OTHER = 'prof.lee@hanyang.ac.kr';
     const c = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: scale });
     const t = await c.newPage(); watch(t);
     await t.goto(base + '/?as=' + DEFAULT_USER);
-    await t.waitForSelector('table tr td');
+    await t.waitForSelector('.app-table tr td');
+    if (await t.isVisible('.app-cards')) problems.push(tag + ': 카드 목록이 표와 함께 보임');
     await noHScroll(t, tag + ' 첫 화면');
     await shot(t, (tag === 'tablet' ? '12' : '14') + '-' + tag + '-home');
     // 임시저장본(샘플C) 다시 열기 → 저장된 단계(주차별 설계)로 열림
