@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+  body { font-family: "Noto Sans KR", "Malgun Gothic", sans-serif; font-size: 10.5pt; color: #111; line-height: 1.5; }
+  h1 { font-size: 16pt; text-align: center; margin: 4px 0 14px; letter-spacing: 2px; }
+  h2 { font-size: 12.5pt; margin: 18px 0 8px; border-bottom: 2px solid #222; padding-bottom: 4px; }
+  .tag { font-size: 9.5pt; font-weight: bold; }
+  .meta { font-size: 9pt; color: #444; text-align: right; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; table-layout: fixed; }
+  th, td { border: 1px solid #555; padding: 5px 7px; vertical-align: top; word-break: break-all; }
+  th { background: #eceff3; font-weight: bold; text-align: center; }
+  .pre { white-space: pre-wrap; }
+  .page { page-break-after: always; }
+  .rules { font-size: 9.5pt; }
+  .rules li { margin-bottom: 3px; }
+  .sign { margin-top: 24px; text-align: right; font-size: 11pt; }
+  .org { text-align: center; font-weight: bold; font-size: 12pt; margin-top: 26px; }
+  .small { font-size: 9pt; color: #444; }
+  .wk th, .wk td { font-size: 9pt; }
+</style>
+</head>
+<body>
+<? var b = d.basic || {}, o = d.overview || {}, s = d.strategy || {}, w = d.weeks || []; ?>
+
+<!-- 1. 신청서 -->
+<div class="page">
+  <div class="tag">[별첨2]</div>
+  <div class="meta">접수번호 <?= r.id ?> · 제출 <?= r.submittedAt ?></div>
+  <div style="text-align:center;margin-top:8px"><?= b.semester ?> 학기</div>
+  <h1>플립러닝(Smart-F/B) 콘텐츠 개발 신청서</h1>
+  <table>
+    <tr><th rowspan="2" style="width:16%">교과목명</th><th style="width:10%">한글</th><td><?= b.nameKo ?></td></tr>
+    <tr><th>영문</th><td><?= b.nameEn ?></td></tr>
+  </table>
+  <table>
+    <tr><th rowspan="4" style="width:16%">교과목 개발<br>책임자</th><th style="width:14%">소속</th><td><?= b.org ?></td><th style="width:14%">직위</th><td><?= b.position ?></td></tr>
+    <tr><th>성명</th><td colspan="3"><?= b.prof ?> <span style="float:right">(서명)</span></td></tr>
+    <tr><th>전공구분</th><td><?= b.majorType || '' ?></td><th>이수학점</th><td><?= b.credits || '' ?></td></tr>
+    <tr><th>핸드폰(선택)</th><td><?= d.consent && d.consent.optional ? (b.phone || '') : '' ?></td><th>이메일(필수)</th><td><?= r.profEmail ?></td></tr>
+  </table>
+  <table>
+    <tr><th rowspan="2" style="width:16%">필수 사항</th><th style="width:14%">개발기간</th><td><?= devPeriod ?></td><th style="width:14%">개설시기</th><td><?= b.semester ?></td></tr>
+    <tr><td colspan="4">
+      <ul class="rules">
+        <li>온라인 수업으로 선행학습을 한 후 15주 이상 강의실 출석 수업이 진행되며, 동영상 촬영(Smart-F 8주차 이상, Smart-B 4주차 이상, 중간/기말 제외) 및 학습활동(토론, 퀴즈, 학습정리, 키워드체크, 학습자료 등)을 제공하는 교과목으로 수업을 운영한다.</li>
+        <li>교/강사는 개발된 콘텐츠를 최소 2년 이상(4회 학기) 과목개설로 권장하며, 수업운영(질의응답/시험/과제/채점 등)을 성실히 수행한다.</li>
+        <li>최초 신규 개발 교수자는 수업설계, 교안작성, 동영상 개발 방법 등을 컨설팅 상담 받기를 권고합니다.</li>
+        <li>기 개발 콘텐츠는 수정, 편집, 재촬영 등으로 수정 보완이 가능하며, 3년이 경과한 콘텐츠인 경우 전면 재개발을 권장한다.</li>
+        <li>외부 제작 콘텐츠를 활용할 경우 저작권, 초상권에 위배되지 않은 범위에서 가능하며, 이에 대한 모든 책임은 콘텐츠 개발자에게 있다.</li>
+        <li>개발 완료된 콘텐츠의 모든 저작권은 한양대학교에 귀속되며, 별도의 총장의 승인 없이 외부에 공개 및 유포할 수 없다.</li>
+      </ul>
+    </td></tr>
+  </table>
+  <table>
+    <tr><th style="width:16%">수업유형</th><td><?= b.classType ?> · <?= b.creditPlan ?></td><th style="width:14%">개발구분</th><td><?= b.devType ?></td></tr>
+    <tr><th>학수번호</th><td><?= b.courseCode ?><?= b.section ? ' (' + b.section + '분반)' : '' ?></td><th>영상 개발 주차</th><td><?= b.videoWeeks ?>주 · <?= b.shootType ?></td></tr>
+  </table>
+  <p class="small">* 위 내용에 동의할 경우 서명 날인 후, RC 행정팀을 경유하여 그룹웨어 공문으로 에듀테크혁신팀에 제출한다. (온라인 신청 동의 일시: <?= d.consent ? d.consent.at : '' ?>)</p>
+  <div class="sign">20&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;.<br><br>신청자 : <?= b.prof ?> (서명)</div>
+  <div class="org">(서울) 교육혁신처 에듀테크혁신팀</div>
+</div>
+
+<!-- 2. 교과목 개요 -->
+<div class="page">
+  <h2>교과목 개요</h2>
+  <table>
+    <tr><th style="width:22%">1. 교육목적 및 필요성</th><td class="pre"><?= o.purpose || '' ?></td></tr>
+    <tr><th>2. 교과목의 특징 및 장점</th><td class="pre"><?= o.features || '' ?></td></tr>
+    <tr><th>3. 기대효과</th><td class="pre"><?= o.effects || '' ?></td></tr>
+  </table>
+
+  <h2>교과목 개발 계획서</h2>
+  <table>
+    <tr><th rowspan="4" style="width:15%">교과목 정보</th><th style="width:15%">과목명</th><td colspan="3">한글) <?= b.nameKo ?><br>영문) <?= b.nameEn ?></td></tr>
+    <tr><th>수업유형</th><td colspan="3"><?= b.classType ?> · <?= b.creditPlan ?></td></tr>
+    <tr><th>희망학기</th><td colspan="3"><?= b.semester ?></td></tr>
+    <tr><th>개설학과</th><td><?= b.dept ?></td><th style="width:14%">권장학년</th><td><?= b.grade || '' ?></td></tr>
+    <tr><th rowspan="2">담당교수 정보</th><th>성명</th><td colspan="3"><?= b.prof ?></td></tr>
+    <tr><th>이수학점</th><td><?= b.credits || '' ?></td><th>전공구분</th><td><?= b.majorType || '' ?></td></tr>
+    <tr><th colspan="2">과목개요(국문)</th><td colspan="3" class="pre"><?= o.summaryKo || '' ?></td></tr>
+    <tr><th colspan="2">과목개요(영문)</th><td colspan="3" class="pre"><?= o.summaryEn || '' ?></td></tr>
+    <tr><th colspan="2">학습목표</th><td colspan="3" class="pre"><?= o.goals || '' ?></td></tr>
+    <tr><th rowspan="3">플립러닝 단계별 교수·학습 방법 및 전략</th><th>Pre-class</th><td colspan="3" class="pre"><?= s.pre || '' ?></td></tr>
+    <tr><th>In-class</th><td colspan="3" class="pre"><?= s.inClass || '' ?></td></tr>
+    <tr><th>Post-class</th><td colspan="3" class="pre"><?= s.post || '' ?></td></tr>
+  </table>
+  <table>
+    <tr><th style="width:22%">평가항목</th><th style="width:14%">반영비율</th><th>평가 전략</th></tr>
+    <? (s.evalItems || []).forEach(function (x) { ?>
+      <tr><td><?= x.name ?></td><td style="text-align:center"><?= x.pct ?>%</td><td class="pre"><?= x.desc || '' ?></td></tr>
+    <? }); ?>
+    <tr><th>평가항목별 평가기준</th><td colspan="2" class="pre"><?= s.evalCriteria || '' ?></td></tr>
+    <tr><th>강의교재</th><td colspan="2"><?= s.textbook || '' ?></td></tr>
+    <tr><th>보조교재</th><td colspan="2"><?= s.subTextbook || '' ?></td></tr>
+    <tr><th>기타</th><td colspan="2" class="pre"><?= s.etc || '' ?></td></tr>
+  </table>
+</div>
+
+<!-- 3. 주차별 학습 설계 -->
+<div>
+  <h2>주차별 학습 설계</h2>
+  <table class="wk">
+    <tr><th style="width:6%">주차</th><th style="width:15%">학습주제</th><th style="width:22%">A. Pre-class<br>학습 내용 및 퀴즈</th><th>B. In-class</th><th style="width:8%">소요시간(분)</th></tr>
+    <? w.forEach(function (x, i) { ?>
+      <tr>
+        <td style="text-align:center"><?= i + 1 ?><? if (x.type) { ?><br><span class="small"><?= x.type === '없음' ? '미운영' : x.type ?></span><? } ?></td>
+        <td class="pre"><?= x.topic || '' ?></td>
+        <td class="pre"><?= x.pre || '' ?></td>
+        <td class="pre"><? if (x.intro) { ?>④ 도입: <?= x.intro ?>
+<? } ?><? if (x.deep) { ?>⑤ 심화: <?= x.deep ?>
+<? } ?><? if (x.wrap1) { ?>⑥ 마무리1: <?= x.wrap1 ?>
+<? } ?><? if (x.wrap2) { ?>⑦ 마무리2: <?= x.wrap2 ?><? } ?></td>
+        <td style="text-align:center"><?= x.minutes || '' ?></td>
+      </tr>
+    <? }); ?>
+  </table>
+
+  <h2>개인정보 수집·이용 동의 내역</h2>
+  <table>
+    <tr><th style="width:22%">수집·이용 목적</th><td>플립러닝 콘텐츠 개발 신청 접수·선정, 개발 지원 안내, 셀프스튜디오 예약 관리, 개발 이력·재개발 대상 관리</td></tr>
+    <tr><th>수집 항목</th><td>필수: 성명, 소속, 직위, 이메일 / 선택: 휴대폰 번호</td></tr>
+    <tr><th>보유·이용 기간</th><td>개인정보(연락처·이메일)는 해당 학기 종료일로부터 2년, 개발 이력은 10년 보관 후 지체 없이 파기</td></tr>
+    <tr><th>동의 여부</th><td>필수 동의 ○ (<?= d.consent ? d.consent.at : '' ?>) · 선택 동의 <?= d.consent && d.consent.optional ? '○' : '×' ?></td></tr>
+  </table>
+</div>
+</body>
+</html>

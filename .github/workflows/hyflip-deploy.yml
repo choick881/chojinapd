@@ -1,0 +1,57 @@
+name: HY FLIP 배포 (수동 실행)
+# Actions 탭 > "HY FLIP 배포 (수동 실행)" > Run workflow 를 눌러야만 실행됩니다. 자동으로는 돌지 않습니다.
+# 필요한 비밀값 (Settings > Environments > hyflip-test / hyflip-prod 에 각각 등록):
+#   CLASPRC_JSON          부서 공동계정으로 clasp login 후 생긴 ~/.clasprc.json 내용 전체
+#   HYFLIP_SCRIPT_ID      Apps Script 스크립트 ID
+#   HYFLIP_DEPLOYMENT_ID  웹 앱 배포 ID
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: '배포 대상 (test = 테스트용 사본, prod = 실제 신청 페이지)'
+        required: true
+        default: test
+        type: choice
+        options: [test, prod]
+      description:
+        description: '배포 설명 (예: v1.0.2 대리신청 삭제)'
+        required: false
+        default: ''
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: hyflip-${{ inputs.target }}
+    defaults:
+      run:
+        working-directory: hyflip
+    steps:
+      - name: 실제 페이지는 main 브랜치에서만
+        if: inputs.target == 'prod' && github.ref != 'refs/heads/main'
+        run: echo "::error::prod 배포는 main 브랜치에서만 실행할 수 있습니다." && exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 비밀값 확인
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          HYFLIP_SCRIPT_ID: ${{ secrets.HYFLIP_SCRIPT_ID }}
+          HYFLIP_DEPLOYMENT_ID: ${{ secrets.HYFLIP_DEPLOYMENT_ID }}
+        run: |
+          for v in CLASPRC_JSON HYFLIP_SCRIPT_ID HYFLIP_DEPLOYMENT_ID; do
+            [ -n "${!v}" ] || { echo "::error::hyflip-${{ inputs.target }} 환경에 $v 비밀값이 없습니다 (hyflip/docs/배포자동화.md 참고)"; exit 1; }
+          done
+      - run: npm install --no-audit --no-fund
+      - name: clasp 로그인 정보 쓰기
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        run: printf '%s' "$CLASPRC_JSON" > ~/.clasprc.json && chmod 600 ~/.clasprc.json
+      - name: 테스트 → push → 배포
+        env:
+          HYFLIP_SCRIPT_ID: ${{ secrets.HYFLIP_SCRIPT_ID }}
+          HYFLIP_DEPLOYMENT_ID: ${{ secrets.HYFLIP_DEPLOYMENT_ID }}
+          DESC: ${{ inputs.description }}
+        run: bash scripts/deploy.sh "${{ inputs.target }}" "${DESC:-HY FLIP ${{ github.sha }}}" --yes
+      - name: 로그인 정보 지우기
+        if: always()
+        run: rm -f ~/.clasprc.json

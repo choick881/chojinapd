@@ -1,0 +1,198 @@
+<title>HY FLIP 12/4 내부 테스트</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 한 장짜리 현장 점검표. 왼쪽 상태 칩 + 항목, 위쪽에 진행 요약 */
+:root {
+  --bg: #f5f7fa; --surface: #ffffff; --fg: #17202b; --muted: #5b6673; --line: #d9dfe6;
+  --accent: #0e4c92; --accent-soft: #e3ecf7; --ok: #1f7a4d; --ok-soft: #e2f3ea; --warn: #a3520c; --warn-soft: #fbeedd;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11161d; --surface: #19212b; --fg: #e6ebf1; --muted: #9aa6b4; --line: #2c3743;
+  --accent: #7fb2ec; --accent-soft: #1d2e44; --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0ad6b; --warn-soft: #3a2816; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11161d; --surface: #19212b; --fg: #e6ebf1; --muted: #9aa6b4; --line: #2c3743;
+  --accent: #7fb2ec; --accent-soft: #1d2e44; --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0ad6b; --warn-soft: #3a2816; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
+h1 { font-size: 26px; line-height: 1.3; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.sub { color: var(--muted); max-width: 65ch; }
+.summary { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.bar { flex: 1 1 220px; height: 8px; background: var(--accent-soft); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .2s; }
+.count { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 13px; color: var(--muted); }
+section { display: grid; gap: 10px; }
+.sec-head { display: grid; gap: 2px; }
+.sec-head p { color: var(--muted); font-size: 14px; }
+ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+li { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+li.done { border-color: var(--ok); }
+li.fail { border-color: var(--warn); background: var(--warn-soft); }
+.state { grid-row: span 3; display: flex; flex-direction: column; gap: 6px; }
+.state button { font: inherit; font-size: 12px; font-weight: 600; min-width: 52px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.state button:focus-visible, .copy:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.state button[aria-pressed="true"].b-ok { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
+.state button[aria-pressed="true"].b-ng { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+.what { font-weight: 600; min-width: 0; }
+.how { color: var(--muted); font-size: 14px; min-width: 0; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 12px; padding: 1px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+.tag.auto { background: var(--ok-soft); color: var(--ok); }
+.tag.risk { background: var(--warn-soft); color: var(--warn); }
+textarea { grid-column: 2; font: inherit; font-size: 14px; width: 100%; box-sizing: border-box; min-height: 0; resize: vertical; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); padding: 6px 8px; }
+textarea[hidden] { display: none; }
+.foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.copy { font: inherit; font-weight: 600; padding: 9px 16px; border-radius: 8px; border: 0; background: var(--accent); color: var(--surface); cursor: pointer; }
+.note { font-size: 13px; color: var(--muted); }
+#out { width: 100%; min-height: 120px; }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">HY FLIP 신청 모듈 v1.0.3 · 2026-12-04 점검 · 12/5 오픈 · 12/14 17:00 마감</span>
+    <h1>12/4 내부 테스트 점검표</h1>
+    <p class="sub">자동 테스트(35개)로는 확인할 수 없는 항목만 모았습니다. 테스트용 시트 사본에서 순서대로 진행하고, 항목마다 통과·실패를 누르세요. 실패하면 메모 칸에 무엇이 보였는지 적어 주세요. 기록은 이 브라우저에만 저장됩니다.</p>
+  </header>
+
+  <div class="summary" aria-live="polite">
+    <span class="count" id="count">0 / 0 통과</span>
+    <div class="bar" aria-hidden="true"><i id="fill"></i></div>
+    <span class="count" id="fails">실패 0</span>
+  </div>
+  <div class="legend">
+    <span><span class="tag auto">자동 통과</span> 가짜 서버 테스트는 통과, 실제 환경에서 한 번 더 확인</span>
+    <span><span class="tag risk">사람만</span> 자동 테스트로 확인 불가</span>
+  </div>
+
+  <div id="sections"></div>
+
+  <section>
+    <div class="sec-head"><h2>결과 정리</h2><p>버튼을 누르면 결과가 아래 칸에 정리되고 복사됩니다. Claude에게 그대로 붙여넣어 주시면 실패 항목부터 고치겠습니다.</p></div>
+    <div class="foot"><button class="copy" id="copy" type="button">결과 복사</button><span class="note" id="copied"></span></div>
+    <textarea id="out" readonly aria-label="정리된 결과"></textarea>
+  </section>
+</div>
+
+<script>
+const DATA = [
+  { id: 'prep', title: '0. 준비 (테스트 전날까지)', desc: '실제 신청 페이지와 데이터를 건드리지 않도록 사본에서 합니다.', items: [
+    ['p1', '테스트용 시트 사본을 만들고 PDF 폴더도 테스트용으로 바꿨다', '사본 설정 탭의 PDF폴더ID가 HYFLIP_신청서PDF_테스트 폴더인지 확인', []],
+    ['p2', '사본에서 setup을 실행해 "설치 완료: 트리거 2개"가 나왔다', 'Apps Script 편집기 > setup 실행 > 실행 기록 확인', ['auto']],
+    ['p3', '사본을 웹 앱으로 배포하고 URL을 신청페이지URL에 넣었다', 'npm run deploy:test 또는 편집기에서 배포', []],
+    ['p4', '테스트 계정 3개를 준비했다', '교수 A(학교 계정), 행정팀(학교 계정), 개인 Gmail', []],
+    ['p5', '설정 탭 날짜가 공문과 같다', '신청마감 2026-12-14 17:00, 개발기간 2026-12-15 ~ 2027-02-19, 담당자연락처 02-2220-1406', ['risk']],
+  ]},
+  { id: 'access', title: '1. 접근과 신청서 작성', desc: '', items: [
+    ['a1', '개인 Gmail로 URL을 열면 "접근 권한이 없습니다"가 나온다', '실제 구글 로그인 도메인 판정은 실제 환경에서만 확인됩니다', ['auto']],
+    ['a2', '첫 화면에 대리신청 체크박스가 없고 "현재 로그인 계정"에 본인 메일이 보인다', '교수 A로 로그인', ['auto']],
+    ['a3', '과목 검색 결과에서 과목을 고르면 학수번호·과목명·학과가 자동으로 채워진다', '기본정보 단계에서 과목명 두 글자 이상 입력', ['risk']],
+    ['a4', '임시저장 → 목록으로 → 다시 열기 하면 작성하던 단계와 내용이 그대로다', '', ['risk']],
+    ['a5', '첫 단계에서 "다음"을 누르자마자 "임시저장"을 눌러도 목록에 (미제출)이 하나만 생긴다', '실제 응답 속도에서 한 번 더 확인', ['auto']],
+    ['a7', '주차 유형을 바꾸면 영상 개발 주차 수가 자동으로 바뀐다 (샘플 A: 7주차 시험, 16주차 없음 → 13주)', 'docs/테스트샘플_입력용.md의 샘플 A~D를 그대로 입력. B는 4주라 다음으로 넘어가지 않아야 정상', ['auto']],
+    ['a8', '신청서 PDF 주차 표에 주차 유형(영상·오프라인·시험·미운영)이 보인다', '', ['risk']],
+    ['a6', '학기 열을 일반 텍스트로 바꾸지 않고 개설과목을 붙여넣어도 과목 검색이 된다', '사본의 개설과목 탭에 2027-1을 그대로 붙여넣어 날짜로 바뀌게 한 뒤 검색', ['auto']],
+  ]},
+  { id: 'submit', title: '2. 제출과 PDF', desc: '', items: [
+    ['s1', '제출하면 접수번호(FL-2027-1-001)가 화면에 나오고 PDF가 테스트 폴더에 생긴다', '', ['auto']],
+    ['s2', '접수 안내 메일이 교수 A 메일함에 실제로 도착했다(참조 없음)', '스팸함도 확인. 발신 이름은 HY FLIP 에듀테크혁신팀', ['risk']],
+    ['s3', 'PDF를 열어 한글이 깨지지 않고, 표가 잘리지 않고, 상단에 "대리신청" 표시가 없다', '주차별 설계 표와 긴 서술 칸을 특히 확인', ['risk']],
+    ['s4', 'PDF 공유 알림 메일이 교수에게 가는지, 가도 괜찮은지 확인했다', '구글이 보기 권한 공유 알림을 보낼 수 있음', ['risk']],
+    ['s5', '신청목록의 학기 칸이 날짜가 아니라 2027-1로 보인다', '', ['auto']],
+    ['s6', '마감 전 수정해 다시 제출하면 PDF가 새로 바뀌고, 이전 PDF가 드라이브 휴지통에 있다', '버튼 이름이 "수정 내용 제출"인지도 확인', ['auto']],
+    ['s7', '행정팀 계정으로 열면 교수 A의 신청서가 목록에 없고, 열 수도 없다', '', ['auto']],
+    ['s8', '제출 완료 화면에 "서명한 신청서 1부를 그룹웨어 공문으로 제출, 개인정보서약서는 따로 내지 않음, 동의 내역은 PDF 마지막 쪽" 안내가 보인다', '11/25 결정: 온라인 동의로 서약서 대체. PDF 마지막 쪽 동의 내역(일시)과 접수안내 메일 문구도 확인', ['risk']],
+  ]},
+  { id: 'status', title: '3. 선정상태 변경 (담당자)', desc: '신청목록의 선정상태 칸을 드롭다운으로 바꿉니다. 실제 편집 트리거와 메일 수신은 실제 환경에서만 확인됩니다.', items: [
+    ['t1', '심의중으로 바꾸면 메일이 가지 않는다', '', ['auto']],
+    ['t2', '미선정(사유 없음)이면 셀에 "메일 미발송" 메모가 붙고, 사유를 넣고 다시 고르면 메일이 도착한다', '', ['auto']],
+    ['t3', '보완요청은 보완내용·보완기한을 넣은 뒤 고르면 메일이 도착하고, 교수가 고쳐 제출하면 상태가 접수로 돌아간다', '', ['auto']],
+    ['t4', '선정으로 바꾸면 선정 메일이 도착한다', '', ['auto']],
+    ['t5', '메일 4종의 제목·본문에 {중괄호}가 남지 않고 값이 제대로 들어갔다', '교수명, 과목명, 학기, 보완기한 등', ['risk']],
+  ]},
+  { id: 'sheet', title: '4. 시트와 운영', desc: '', items: [
+    ['h1', '현황 탭 건수가 신청목록과 맞다', '학기가 텍스트로 저장되므로 현황 수식이 날짜로 비교하면 0건이 될 수 있음', ['risk']],
+    ['h2', '메일문구 탭에서 한 줄을 잠시 지우고 setup을 실행하면 빠진 구분을 알려주는 오류가 난다 (확인 후 복구)', '', ['auto']],
+    ['h3', 'setup에서 "○○ 열이 없습니다"가 나오지 않는다', '나오면 열 이름을 메모에 적어 주세요. 시트와 코드 중 어느 쪽을 맞출지 정해야 합니다', ['risk']],
+    ['h4', '마감 시각이 지나면 새 신청과 수정이 막힌다', '사본의 신청마감을 잠시 지난 시각으로 바꿔 확인한 뒤 2026-12-14 17:00으로 되돌리기', ['risk']],
+  ]},
+];
+
+const KEY = 'hyflip-1204-v1';
+let st = {};
+try { st = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { st = {}; }
+const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const TAG = { auto: '<span class="tag auto">자동 통과</span>', risk: '<span class="tag risk">사람만</span>' };
+
+document.getElementById('sections').innerHTML = DATA.map(sec => `
+  <section>
+    <div class="sec-head"><h2>${esc(sec.title)}</h2>${sec.desc ? `<p>${esc(sec.desc)}</p>` : ''}</div>
+    <ol>${sec.items.map(([id, what, how, tags]) => `
+      <li id="li-${id}">
+        <div class="state">
+          <button type="button" class="b-ok" data-id="${id}" data-v="ok" aria-pressed="false">통과</button>
+          <button type="button" class="b-ng" data-id="${id}" data-v="ng" aria-pressed="false">실패</button>
+        </div>
+        <span class="what">${esc(what)}</span>
+        ${how ? `<span class="how">${esc(how)}</span>` : '<span></span>'}
+        <div class="tags">${(tags || []).map(t => TAG[t]).join('')}</div>
+        <textarea id="memo-${id}" data-memo="${id}" rows="2" placeholder="무엇이 보였는지 적어 주세요" aria-label="메모"></textarea>
+      </li>`).join('')}</ol>
+  </section>`).join('');
+
+const ALL = DATA.flatMap(s => s.items.map(i => i[0]));
+function paint() {
+  let ok = 0, ng = 0;
+  ALL.forEach(id => {
+    const v = (st[id] || {}).v, li = document.getElementById('li-' + id);
+    li.classList.toggle('done', v === 'ok'); li.classList.toggle('fail', v === 'ng');
+    li.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+    const memo = document.getElementById('memo-' + id);
+    memo.hidden = !(v === 'ng' || (st[id] || {}).m);
+    if (memo.value !== ((st[id] || {}).m || '')) memo.value = (st[id] || {}).m || '';
+    if (v === 'ok') ok++; if (v === 'ng') ng++;
+  });
+  document.getElementById('count').textContent = ok + ' / ' + ALL.length + ' 통과';
+  document.getElementById('fails').textContent = '실패 ' + ng;
+  document.getElementById('fill').style.width = (ok / ALL.length * 100) + '%';
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.state button'); if (!b) return;
+  const cur = st[b.dataset.id] || {};
+  cur.v = cur.v === b.dataset.v ? '' : b.dataset.v;
+  st[b.dataset.id] = cur; persist(); paint();
+  if (cur.v === 'ng') document.getElementById('memo-' + b.dataset.id).focus();
+});
+document.addEventListener('input', e => {
+  const id = e.target.dataset && e.target.dataset.memo; if (!id) return;
+  st[id] = Object.assign(st[id] || {}, { m: e.target.value }); persist();
+});
+function summary() {
+  const lines = ['HY FLIP 12/4 내부 테스트 결과'];
+  DATA.forEach(sec => {
+    lines.push('', sec.title);
+    sec.items.forEach(([id, what]) => {
+      const s = st[id] || {}, mark = s.v === 'ok' ? '[통과]' : s.v === 'ng' ? '[실패]' : '[미확인]';
+      lines.push(mark + ' ' + what + (s.m ? '\n    메모: ' + s.m : ''));
+    });
+  });
+  return lines.join('\n');
+}
+document.getElementById('copy').addEventListener('click', () => {
+  const out = document.getElementById('out'), txt = summary(), msg = document.getElementById('copied');
+  out.value = txt;
+  const fallback = () => { out.focus(); out.select(); msg.textContent = '아래 칸이 선택됐습니다. Ctrl+C(⌘+C)로 복사하세요.'; };
+  try {
+    navigator.clipboard.writeText(txt).then(() => { msg.textContent = '복사했습니다.'; }, fallback);
+  } catch (e) { fallback(); }
+});
+paint();
+</script>

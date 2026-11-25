@@ -1,0 +1,19 @@
+name: HY FLIP 자동 테스트
+on:
+  push:
+    paths: ['hyflip/**', '.github/workflows/hyflip-test.yml']
+  pull_request:
+    paths: ['hyflip/**', '.github/workflows/hyflip-test.yml']
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: hyflip
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-syntax.js
+      - run: node --test test/*.test.js
