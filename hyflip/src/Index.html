@@ -204,7 +204,7 @@ function step1() {
   </div>
   <h3>개발 조건</h3>
   <div class="grid">
-    ${field('수업유형', sel('basic.classType', ['Smart-F', 'Smart-B']), true, 'Smart-F: 주차당 25분(1학점)/40분(1.5학점) 이상 · Smart-B: 주차당 75분 이상, 100% 온라인')}
+    ${field('수업유형', sel('basic.classType', ['Smart-F', 'Smart-B']), true, 'Smart-F: 주차당 영상 25분 이상이면 강의 시수 1시간, 40분 이상이면 1.5시간 인정 · Smart-B: 주차당 75분 이상, 100% 온라인')}
     ${field('학점 구성', sel('basic.creditPlan', CREDIT_PLANS), true)}
     ${field('개발구분', sel('basic.devType', ['신규', '수정·보완', '재개발']), true)}
     ${field('영상 개발 주차 수', inp('basic.videoWeeks', { type: 'number', min: 1 }), true, minW ? `${esc(b.classType)}는 ${minW}주 이상(중간·기말 제외)` : '수업유형을 먼저 고르세요.')}
@@ -403,7 +403,7 @@ function doneView() {
     <div class="notice ok">접수번호 <b>${esc(r.id)}</b>${r.isNew ? ' · 접수 안내 메일을 보냈습니다.' : ''}</div>
     <h3>다음 할 일</h3>
     <ol><li><a href="${esc(r.pdf)}" target="_blank">신청서 PDF 열기</a> → 출력 후 서명</li>
-        <li>소속 단과대학 RC 행정팀을 경유해 공문으로 제출</li>
+        <li>개인정보서약서 1부와 함께 소속 단과대학 RC 행정팀을 경유해 그룹웨어 공문으로 제출(수신: 교육혁신처 에듀테크혁신팀)</li>
         <li>마감(${esc(INIT.deadline)}) 전까지 이 페이지에서 내용을 수정할 수 있습니다.</li></ol>
     <div class="btns"><span></span><button class="primary" onclick="goHome()">내 신청서 목록</button></div></div>`;
 }
