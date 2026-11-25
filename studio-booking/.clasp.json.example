@@ -1,0 +1,5 @@
+{
+  "scriptId": "여기에_clasp_create가_만든_스크립트ID",
+  "rootDir": "src",
+  "filePushOrder": ["src/Rules.js", "src/Db.js"]
+}

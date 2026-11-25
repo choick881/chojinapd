@@ -1,0 +1,329 @@
+<script>
+  var S = { d: null, studio: '', date: '', start: null, end: null, avail: null, replace: null, req: 0, busy: false };
+
+  function cfg() { return S.d.config; }
+  function today() { return S.d.now.date; }
+  function isWorkday(d) { var w = weekdayOf(d); return w !== 0 && w !== 6 && S.d.holidays.indexOf(d) === -1; }
+
+  function fatal(e) {
+    var f = $('#fatal'); f.hidden = false; f.textContent = e.message || String(e);
+    $('#who').textContent = '';
+  }
+
+  /* ---------- 시작 ---------- */
+  api('apiBootstrap').then(function (d) {
+    S.d = d;
+    $('#who').textContent = d.email + ' 계정으로 이용 중';
+    if (d.isAdmin) $('#tab-admin').hidden = false;
+    if (d.sanctionUntil) {
+      var s = $('#sanction'); s.hidden = false;
+      s.textContent = '노쇼 누적으로 ' + d.sanctionUntil + '까지 새 예약이 제한됩니다. 사정이 있었다면 담당자(' + d.contact + ')에게 문의해 주세요.';
+    }
+    renderStudios();
+    var di = $('#date');
+    di.min = today();
+    if (cfg().maxAdvanceDays) di.max = addDays(today(), cfg().maxAdvanceDays);
+    S.date = d.now.min < cfg().closeMin - cfg().slotMin ? today() : addDays(today(), 1);
+    di.value = S.date;
+    $('#name').value = d.name; $('#org').value = d.org; $('#email').value = d.email;
+    $('#shootType').innerHTML = '<option value="">선택해 주세요</option>' +
+      d.shootTypes.map(function (t) { return '<option>' + esc(t) + '</option>'; }).join('');
+    $('#purposes').innerHTML = d.purposes.map(function (p, i) {
+      return '<label class="chip"><input type="radio" name="purpose" value="' + esc(p) + '"><span>' + esc(p) + '</span></label>';
+    }).join('');
+    $('#supportHint').textContent = '담당자 근무시간(평일 ' + fmtMin(cfg().supportStartMin) + '~' + fmtMin(cfg().supportEndMin) +
+      ', 공휴일 제외)만 선택할 수 있고, 담당자가 확인한 뒤 확정됩니다.';
+    renderRules();
+    bindEvents();
+    renderSlots();
+    updateDock();
+    if (BOOT.page === 'my') show('my');
+  }).catch(fatal);
+
+  function renderStudios() {
+    $('#studios').innerHTML = S.d.studios.map(function (s) {
+      return '<label class="studio"><input type="radio" name="studio" value="' + esc(s.code) + '">' +
+        '<span class="code">' + esc(s.code) + '</span>' +
+        '<span class="loc">' + esc(s.location) + '</span>' +
+        '<span class="meta">' + esc(s.org) + ' · ' + esc(s.equipment) + ' · 내선 ' + esc(s.ext) + '</span></label>';
+    }).join('') || '<div class="empty">예약 가능한 스튜디오가 없습니다.</div>';
+  }
+
+  function renderRules() {
+    var c = cfg();
+    var items = [
+      '예약 시작 ' + c.checkinEarlyMin + '분 전부터 스튜디오에 붙은 QR 코드로 체크인합니다. 시작 후 ' + c.noShowGraceMin +
+        '분(짧은 예약은 종료 시각) 안에 체크인하지 않으면 노쇼로 처리됩니다.',
+      '취소·변경은 이용 전날 ' + fmtMin(c.deadlineMin) + '까지 직접 할 수 있습니다. 그 이후 취소나 미이용은 노쇼입니다.',
+      '학기 중 노쇼 ' + c.sanctionThreshold + '회부터 ' + c.sanctionDays + '일 동안 예약이 제한됩니다.',
+      '1인 1일 최대 ' + dur(c.dailyMaxMin) + '까지 예약할 수 있습니다.',
+      '장비 설정을 임의로 바꾸지 말고, 사용 후 전원을 끄고 처음 상태로 정리해 주세요.',
+      '음식물은 반입하지 않습니다.',
+      '장비 이상이나 파손을 발견하면 바로 담당자(' + S.d.contact + ')에게 알려 주세요.',
+      '야간 이용: 담당자 근무시간(평일 ' + fmtMin(c.supportStartMin) + '~' + fmtMin(c.supportEndMin) +
+        ') 외에 이용하는 동안 발생한 장비 도난·파손은 이용자 책임입니다.',
+    ];
+    $('#rulesList').innerHTML = items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
+  }
+
+  function bindEvents() {
+    $('#studios').addEventListener('change', function (e) {
+      if (e.target.name !== 'studio') return;
+      S.studio = e.target.value; clearSel(); loadAvail();
+    });
+    $('#date').addEventListener('change', function (e) { S.date = e.target.value; clearSel(); loadAvail(); });
+    $('#support').addEventListener('change', function () {
+      if (S.start !== null && !rangeFree(S.start, S.end)) clearSel();
+      renderSlots(); updateDock();
+    });
+    ['#name', '#org', '#shootType', '#agreePrivacy', '#agreeRules'].forEach(function (id) {
+      $(id).addEventListener('change', function () { $('#formErr').hidden = true; });
+    });
+  }
+
+  function clearSel() { S.start = null; S.end = null; updateDock(); }
+
+  /* ---------- 빈 시간 ---------- */
+  function loadAvail() {
+    S.avail = null;
+    if (!S.studio || !S.date) { renderSlots(); return; }
+    if (S.date < today()) { renderSlots(); return; }
+    var id = ++S.req;
+    $('#slots').innerHTML = '<div class="loading">빈 시간을 확인하는 중…</div>';
+    api('apiAvailability', S.studio, S.date, S.replace ? S.replace.id : '').then(function (a) {
+      if (id !== S.req) return;
+      S.avail = a;
+      if (S.start !== null && !rangeFree(S.start, S.end)) clearSel();
+      renderSlots(); updateDock();
+    }).catch(function (e) { if (id === S.req) $('#slots').innerHTML = '<div class="note err">' + esc(e.message) + '</div>'; });
+  }
+
+  function overlaps(list, s, e) {
+    return (list || []).some(function (x) { return x.startMin < e && s < x.endMin; });
+  }
+
+  function slotState(m) {
+    var c = cfg(), e = m + c.slotMin;
+    if (S.date === today() && m <= S.d.now.min) return { off: true, label: '지남' };
+    var a = S.avail;
+    if (a) {
+      var hit = a.busy.filter(function (x) { return x.startMin < e && m < x.endMin; })[0];
+      if (hit) return { off: true, cls: hit.pending ? 'pending' : '', label: hit.allDay ? '이용 불가' : hit.pending ? '확인 중' : '예약됨' };
+      if (overlaps(a.myBusy, m, e)) return { off: true, cls: 'mine', label: '내 예약' };
+    }
+    if ($('#support').checked && (!isWorkday(S.date) || m < c.supportStartMin || e > c.supportEndMin)) return { off: true, label: '지원 불가' };
+    return { off: false };
+  }
+
+  function rangeFree(s, e) {
+    for (var m = s; m < e; m += cfg().slotMin) if (slotState(m).off) return false;
+    return true;
+  }
+
+  function renderSlots() {
+    var box = $('#slots'), note = $('#dateNote');
+    note.hidden = true;
+    if (!S.d) return;
+    if (S.date && S.date < today()) { box.innerHTML = '<div class="note err">지난 날짜는 예약할 수 없습니다.</div>'; return; }
+    if (S.date && cfg().maxAdvanceDays && S.date > addDays(today(), cfg().maxAdvanceDays)) {
+      box.innerHTML = '<div class="note err">오늘부터 ' + cfg().maxAdvanceDays + '일 이내만 예약할 수 있습니다.</div>'; return;
+    }
+    if (S.date && $('#support').checked && !isWorkday(S.date)) {
+      note.hidden = false; note.textContent = '주말·공휴일에는 촬영 지원을 신청할 수 없습니다. 지원 없이 예약하시거나 평일을 골라 주세요.';
+    }
+    if (!S.studio || !S.date || !S.avail) {
+      if (!S.avail && S.studio && S.date) return; // 로딩 중
+      box.innerHTML = '<div class="empty">스튜디오와 날짜를 먼저 골라 주세요.</div>';
+      $('#usage').hidden = true;
+      return;
+    }
+    var c = cfg(), html = '';
+    for (var m = c.openMin; m < c.closeMin; m += c.slotMin) {
+      var st = slotState(m);
+      var inSel = S.start !== null && m >= S.start && m < S.end;
+      var edge = inSel && (m === S.start || m + c.slotMin === S.end);
+      var cls = 'slot' + (st.cls ? ' ' + st.cls : '') + (inSel ? (edge ? ' sel' : ' in') : '');
+      html += '<button type="button" class="' + cls + '" data-m="' + m + '"' + (st.off ? ' disabled' : '') +
+        ' aria-pressed="' + inSel + '" aria-label="' + fmtMin(m) + '부터 30분' + (st.label ? ', ' + st.label : '') + '">' +
+        fmtMin(m) + (st.label ? '<small>' + st.label + '</small>' : '') + '</button>';
+    }
+    box.innerHTML = html;
+    $$('.slot', box).forEach(function (b) { b.addEventListener('click', function () { pickSlot(Number(b.dataset.m)); }); });
+    var used = S.avail.myUsedMin + (S.start !== null ? S.end - S.start : 0);
+    var u = $('#usage'); u.hidden = false;
+    u.innerHTML = '이날 내 예약 합계 <b>' + dur(used) + '</b> / 최대 ' + dur(c.dailyMaxMin) +
+      '<div class="bar"><i style="width:' + Math.min(100, used / c.dailyMaxMin * 100) + '%"></i></div>';
+  }
+
+  function pickSlot(m) {
+    var c = cfg(), one = S.start !== null && S.end - S.start === c.slotMin;
+    if (S.start === null) { S.start = m; S.end = m + c.slotMin; }
+    else if (one && m === S.start) { clearSel(); }
+    else if (one && m > S.start) {
+      var end = m + c.slotMin;
+      if (!rangeFree(S.start, end)) { toast('중간에 이미 예약된 시간이 있어 이어서 선택할 수 없습니다.'); S.start = m; S.end = end; }
+      else if (S.avail.myUsedMin + end - S.start > c.dailyMaxMin) { toast('1인 1일 최대 ' + dur(c.dailyMaxMin) + '까지 예약할 수 있습니다.'); }
+      else S.end = end;
+    } else { S.start = m; S.end = m + c.slotMin; }
+    if (S.start !== null && S.avail.myUsedMin + S.end - S.start > c.dailyMaxMin) { toast('이날은 이미 ' + dur(S.avail.myUsedMin) + ' 예약하셨습니다.'); clearSel(); }
+    renderSlots(); updateDock();
+  }
+
+  function updateDock() {
+    var btn = $('#submit');
+    if (!S.d) return;
+    var studio = S.d.studios.filter(function (s) { return s.code === S.studio; })[0];
+    if (S.start === null) {
+      $('#sum').innerHTML = '<b>시간을 선택해 주세요</b><span>' + esc(studio ? studio.location : '스튜디오 · 날짜 · 시간') + '</span>';
+      btn.disabled = true;
+    } else {
+      $('#sum').innerHTML = '<b>' + koDate(S.date) + ' ' + fmtMin(S.start) + '–' + fmtMin(S.end) + '</b><span>' +
+        esc(studio ? studio.code + ' ' + studio.location : '') + ' · ' + dur(S.end - S.start) + '</span>';
+      btn.disabled = S.busy;
+    }
+    btn.textContent = S.busy ? '처리 중…' : $('#support').checked ? '지원 요청 보내기' : S.replace ? '이 시간으로 변경' : '예약 확정하기';
+  }
+
+  /* ---------- 제출 ---------- */
+  function collect() {
+    var p = $('input[name=purpose]:checked');
+    return {
+      studioId: S.studio, date: S.date, startMin: S.start, endMin: S.end, support: $('#support').checked,
+      name: $('#name').value.trim(), org: $('#org').value.trim(), shootType: $('#shootType').value,
+      purpose: p ? p.value : '', agreedPrivacy: $('#agreePrivacy').checked, agreedRules: $('#agreeRules').checked,
+      replaceId: S.replace ? S.replace.id : '',
+    };
+  }
+
+  function showErr(list) {
+    var box = $('#formErr');
+    box.hidden = false;
+    box.textContent = list.join('\n');
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function submitBooking() {
+    if (S.busy) return;
+    var f = collect(), e = [];
+    if (!f.studioId) e.push('· 스튜디오를 선택해 주세요.');
+    if (f.startMin === null) e.push('· 시간을 선택해 주세요.');
+    if (!f.name) e.push('· 성명을 입력해 주세요.');
+    if (!f.org) e.push('· 소속을 입력해 주세요.');
+    if (!f.shootType) e.push('· 촬영 유형을 선택해 주세요.');
+    if (!f.purpose) e.push('· 용도를 선택해 주세요.');
+    if (!f.agreedPrivacy) e.push('· 개인정보 수집·이용에 동의해 주세요.');
+    if (!f.agreedRules) e.push('· 이용 수칙·야간 이용 책임에 동의해 주세요.');
+    if (e.length) return showErr(e);
+    $('#formErr').hidden = true;
+    S.busy = true; updateDock();
+    api('apiCreateBooking', f).then(function (res) {
+      S.busy = false; S.replace = null; $('#replacing').hidden = true;
+      showDone(res);
+    }).catch(function (err) {
+      S.busy = false; updateDock();
+      showErr([err.message]);
+      loadAvail();
+    });
+  }
+
+  function bookingCard(b, actions) {
+    return '<article class="card"><div>' + pill(b.status) + (b.support ? ' <span class="pill muted">촬영 지원</span>' : '') + '</div>' +
+      '<div class="when" style="margin-top:8px">' + esc(b.dateLabel) + ' ' + esc(b.start) + '–' + esc(b.end) + '</div>' +
+      '<h3>' + esc(b.studioId) + ' ' + esc(b.location) + '</h3>' +
+      '<dl><dt>예약번호</dt><dd>' + esc(b.id) + '</dd><dt>촬영 유형</dt><dd>' + esc(b.shootType) + '</dd>' +
+      '<dt>용도</dt><dd>' + esc(b.purpose) + '</dd><dt>스튜디오 내선</dt><dd>' + esc(b.ext) + '</dd>' +
+      (b.checkinAt ? '<dt>체크인</dt><dd>' + esc(b.checkinAt) + '</dd>' : '') + '</dl>' + (actions || '') + '</article>';
+  }
+
+  function showDone(b) {
+    var pending = b.status === '담당자 확인 중';
+    $('#view-book').hidden = true; $('#dock').hidden = true;
+    var v = $('#view-done'); v.hidden = false;
+    v.innerHTML = '<div class="big-status">' + (pending ? '촬영 지원 요청을<br>보냈습니다' : '예약이<br>확정되었습니다') + '</div>' +
+      '<p class="hint">' + (pending ? '시간은 임시로 확보해 두었습니다. 담당자가 확인한 뒤 결과를 메일로 알려 드립니다.' :
+        '확인 메일을 보내 드렸습니다. 이용 당일 스튜디오 QR로 체크인해 주세요.') + '</p>' +
+      bookingCard(b) +
+      '<div class="note info"><b>QR 체크인</b><br>스튜디오 출입문 옆 QR을 휴대폰 카메라로 찍고 학교 계정으로 로그인한 뒤 “체크인”을 누르세요. ' +
+      '시작 후 ' + cfg().noShowGraceMin + '분 안에 체크인하지 않으면 노쇼로 처리됩니다.</div>' +
+      '<div class="actions" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="show(\'my\')">내 예약 보기</button>' +
+      '<button class="btn primary" onclick="newBooking()">새 예약하기</button></div>';
+    window.scrollTo(0, 0);
+  }
+
+  function newBooking() {
+    $('#view-done').hidden = true;
+    clearSel();
+    $('#agreePrivacy').checked = false; $('#agreeRules').checked = false;
+    show('book');
+    loadAvail();
+  }
+
+  /* ---------- 화면 전환 ---------- */
+  function show(view) {
+    $('#tab-book').setAttribute('aria-selected', view === 'book');
+    $('#tab-my').setAttribute('aria-selected', view === 'my');
+    $('#view-book').hidden = view !== 'book';
+    $('#view-my').hidden = view !== 'my';
+    $('#view-done').hidden = true;
+    $('#dock').hidden = view !== 'book';
+    if (view === 'my') loadMy();
+  }
+
+  /* ---------- 내 예약 ---------- */
+  var MY = null;
+  function loadMy() {
+    $('#myBody').innerHTML = '<div class="loading">불러오는 중…</div>';
+    api('apiMyBookings').then(function (d) {
+      MY = d;
+      var html = '';
+      if (d.sanctionUntil) html += '<div class="note err">노쇼 누적으로 ' + esc(d.sanctionUntil) + '까지 새 예약이 제한됩니다.</div>';
+      html += '<section class="step"><div class="step-h"><h2>다가오는 예약</h2></div>';
+      if (!d.upcoming.length) html += '<div class="empty">예정된 예약이 없습니다.</div>';
+      d.upcoming.forEach(function (b, i) {
+        var act = b.canModify ?
+          '<div class="actions"><button class="btn small" onclick="changeMy(' + i + ')">변경</button>' +
+          '<button class="btn small danger" onclick="cancelMy(\'' + esc(b.id) + '\')">취소</button></div>' :
+          (b.status === '체크인' ? '' : '<p class="hint">이용 전날 ' + esc(d.deadline) + ' 이후에는 직접 취소·변경할 수 없습니다. 담당자(' + esc(d.contact) + ')에게 연락해 주세요.</p>');
+        html += bookingCard(b, act);
+      });
+      html += '</section><section class="step"><div class="step-h"><h2>지난 예약·취소 내역</h2></div>';
+      if (!d.past.length) html += '<div class="empty">내역이 없습니다.</div>';
+      else {
+        html += '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>날짜</th><th>시간</th><th>스튜디오</th><th>상태</th></tr></thead><tbody>' +
+          d.past.map(function (b) {
+            return '<tr><td>' + esc(b.dateLabel) + '</td><td>' + esc(b.start) + '–' + esc(b.end) + '</td><td>' + esc(b.studioId) + ' ' +
+              esc(b.location) + '</td><td>' + pill(b.status) + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+      }
+      html += '</section>';
+      $('#myBody').innerHTML = html;
+    }).catch(function (e) { $('#myBody').innerHTML = '<div class="note err">' + esc(e.message) + '</div>'; });
+  }
+
+  function cancelMy(id) {
+    if (!confirm('이 예약을 취소할까요? 취소하면 다른 분이 예약할 수 있게 됩니다.')) return;
+    api('apiCancelBooking', id).then(function () { toast('예약을 취소했습니다.'); loadMy(); })
+      .catch(function (e) { alert(e.message); });
+  }
+
+  function changeMy(i) {
+    var b = MY.upcoming[i];
+    S.replace = b;
+    show('book');
+    var r = $('input[name=studio][value="' + b.studioId + '"]');
+    if (r) r.checked = true;
+    S.studio = b.studioId; S.date = b.date; $('#date').value = b.date;
+    $('#support').checked = b.support;
+    S.start = b.startMin; S.end = b.endMin;
+    if (S.d.purposes.indexOf(b.purpose) !== -1) $('input[name=purpose][value="' + b.purpose + '"]').checked = true;
+    if (S.d.shootTypes.indexOf(b.shootType) !== -1) $('#shootType').value = b.shootType;
+    var n = $('#replacing'); n.hidden = false;
+    n.innerHTML = '<b>예약 변경 중</b> — ' + esc(b.id) + ' (' + esc(b.dateLabel) + ' ' + esc(b.start) + '–' + esc(b.end) + ', ' + esc(b.location) + ')<br>' +
+      '새 스튜디오·시간을 고른 뒤 “이 시간으로 변경”을 누르면 기존 예약은 자동으로 취소됩니다. ' +
+      '<a href="#" onclick="stopChange(); return false;">변경 그만두기</a>';
+    loadAvail(); updateDock();
+    window.scrollTo(0, 0);
+  }
+
+  function stopChange() { S.replace = null; $('#replacing').hidden = true; clearSel(); loadAvail(); }
+</script>
