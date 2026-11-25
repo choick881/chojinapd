@@ -2,15 +2,25 @@
 
 플립러닝(Smart-F/B) 콘텐츠 개발 신청을 받는 구글 Apps Script 웹 앱입니다.
 
-| 폴더 | 내용 |
-| --- | --- |
-| `src/` | Apps Script에 올라가는 파일: `Code.gs`, `Index.html`, `Pdf.html`, `appsscript.json` |
-| `docs/설치가이드.md` | 처음 설치와 12/4 내부 테스트 체크리스트 |
-| `docs/변경내역_v1.0.1.md` | v1.0 → v1.0.1 변경내역 (7건) |
-| `docs/배포자동화.md` | clasp 배포 방법, 테스트용 사본 준비, 직접 하셔야 할 일 |
-| `scripts/setup-google.js` | 구글 설정 마법사 (`npm run setup:google`): API 켜기·로그인·사본 연결·테스트 배포 |
-| `scripts/deploy.sh` | 테스트 → push → 배포 (`npm run deploy:test` / `deploy:prod`) |
-| `test/` | 가짜 시트·서버로 돌리는 자동 테스트 |
+## 바로가기
+- 설치: [docs/설치가이드.md](docs/설치가이드.md) · 배포: [docs/배포자동화.md](docs/배포자동화.md)
+- 운영: [docs/운영매뉴얼.md](docs/운영매뉴얼.md)
+- 정의서 검토: [docs/기능정의서_검토의견.md](docs/기능정의서_검토의견.md)
+- 진행 계획: [docs/plans/PLAN_hyflip.md](docs/plans/PLAN_hyflip.md)
+- 2027-1 설정값: [docs/설정값_2027-1.md](docs/설정값_2027-1.md) · 변경내역: [v1.0.1](docs/변경내역_v1.0.1.md), [v1.0.3](docs/변경내역_v1.0.3.md)
+- 화면 캡처: [docs/screenshots](docs/screenshots) · 12/4 점검표: [docs/1204-checklist.html](docs/1204-checklist.html)
+
+## 폴더 구조
+
+```
+src/                 ← Apps Script로 올라가는 코드 (clasp rootDir)
+  Code.gs            서버: 신청·임시저장·제출·PDF·메일·상태변경·보관기간
+  Index.html         신청 화면 (6단계)
+  Pdf.html           신청서 PDF 템플릿
+test/                ← 가짜 시트·드라이브·메일 위 자동 테스트 + 실제 신청서 샘플 4건(비식별)
+preview/             ← 로컬 미리보기 서버, 화면 자동 점검(Playwright)
+scripts/             ← 구글 설정 마법사, clasp 배포
+```
 
 ## 자동 테스트
 
@@ -19,6 +29,16 @@ cd hyflip
 npm test          # 35개 테스트, 인터넷·구글 계정 필요 없음
 npm run check     # 문법 검사만
 ```
+
+```bash
+npm run preview
+```
+→ http://localhost:8788/ (실제 `Code.gs`를 가짜 시트·드라이브로 실행. `?as=이메일`로 계정 전환, 메일은 `/__outbox`, 시트는 `/__sheet/신청목록`)
+
+```bash
+npm run shots
+```
+→ 신청 흐름을 자동으로 클릭해 점검하고 `docs/screenshots`에 캡처(모바일·태블릿·PC + 신청서 PDF). 문제가 있으면 목록을 출력하고 실패합니다.
 
 GitHub에 올리면 `.github/workflows/hyflip-test.yml`이 같은 테스트를 자동으로 돌립니다.
 배포는 `.github/workflows/hyflip-deploy.yml`에서 버튼을 눌러야만 실행됩니다.
@@ -44,8 +64,8 @@ GitHub에 올리면 `.github/workflows/hyflip-test.yml`이 같은 테스트를 �
 | 선정상태 변경(심의중·미선정·보완요청·선정) 메일 동작 | ✅ | |
 | 메일문구 한 줄 지우고 setup → 빠진 구분 오류 | ✅ | |
 | 학기 칸이 날짜여도 과목 검색 / 제출 후 학기 칸 텍스트 | ✅ | |
-| 과목 검색 → 선택 시 자동 채움, 임시저장 후 다시 열기 | 일부 | 서버 쪽만 확인 |
-| **PDF 한글·표 깨짐** | ❌ | 실제 환경에서 눈으로 확인 |
+| 과목 검색 → 선택 시 자동 채움, 임시저장 후 다시 열기 | ✅ | `npm run shots` 화면 클릭 확인 |
+| **PDF 한글·표 깨짐** | 일부 | 변환 전 HTML은 캡처(`09-pdf-a4.png`)로 확인. 구글 PDF 변환 결과는 실제 환경에서 확인 |
 | **`현황` 탭 건수** | ❌ | 시트 수식이라 실제 시트에서 확인 |
 | 실제 메일 수신·드라이브 공유 알림 | ❌ | 실제 환경에서 확인 |
 

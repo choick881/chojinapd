@@ -6,6 +6,8 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "check": "node scripts/check-syntax.js",
+    "preview": "node preview/server.js",
+    "shots": "node preview/shots.js",
     "push": "clasp push",
     "deploy:test": "bash scripts/deploy.sh test",
     "deploy:prod": "bash scripts/deploy.sh prod",
