@@ -185,6 +185,7 @@ function installClock(env) {
     ids[k] = m[0];
     const mails = env.state.mails.slice(before);
     check(TAG[k], '접수 안내 메일 본인 1통', mails.length === 1 && mails[0].to === USERS[k], mails.map((x) => x.to).join(','));
+    check(TAG[k], '메일 답장 주소 = 부서 공동계정', mails.length === 1 && mails[0].opt && mails[0].opt.replyTo === 'hyflip@hanyang.ac.kr', mails[0] && mails[0].opt && mails[0].opt.replyTo);
     compareStored(ids[k], s, k);
     await checkPdf(ids[k], s, k, `${TAG[k]}-3-pdf`);
     await p.close();

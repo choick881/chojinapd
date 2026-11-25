@@ -44,7 +44,7 @@ npm run shots
 ```bash
 npm run e2e:samples
 ```
-→ 실제 신청서 4건(비식별)을 교수 4명이 화면에서 직접 입력·제출하고, 선정·미선정·보완요청·2년 뒤 삭제까지 확인(57개 항목). 캡처는 `docs/screenshots/samples`.
+→ 실제 신청서 4건(비식별)을 교수 4명이 화면에서 직접 입력·제출하고, 선정·미선정·보완요청·2년 뒤 삭제까지 확인(60개 항목). 캡처는 `docs/screenshots/samples`.
 
 GitHub에 올리면 `.github/workflows/hyflip-test.yml`이 같은 테스트를 자동으로 돌립니다.
 배포는 `.github/workflows/hyflip-deploy.yml`에서 버튼을 눌러야만 실행됩니다.

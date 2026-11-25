@@ -44,6 +44,12 @@
     },
     {
       "group": "A",
+      "name": "메일 답장 주소 = 부서 공동계정",
+      "ok": true,
+      "detail": "hyflip@hanyang.ac.kr"
+    },
+    {
+      "group": "A",
       "name": "저장 내용 = 원본 (기본정보·개요·전략·평가·16주)",
       "ok": true,
       "detail": "모든 칸 일치"
@@ -110,6 +116,12 @@
     },
     {
       "group": "C",
+      "name": "메일 답장 주소 = 부서 공동계정",
+      "ok": true,
+      "detail": "hyflip@hanyang.ac.kr"
+    },
+    {
+      "group": "C",
       "name": "저장 내용 = 원본 (기본정보·개요·전략·평가·16주)",
       "ok": true,
       "detail": "모든 칸 일치"
@@ -173,6 +185,12 @@
       "name": "접수 안내 메일 본인 1통",
       "ok": true,
       "detail": "test.prof.d@hanyang.ac.kr"
+    },
+    {
+      "group": "D",
+      "name": "메일 답장 주소 = 부서 공동계정",
+      "ok": true,
+      "detail": "hyflip@hanyang.ac.kr"
     },
     {
       "group": "D",
