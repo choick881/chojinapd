@@ -69,7 +69,9 @@
   });
 
   function who(b) {
-    return esc(b.name) + (b.selected ? ' <span class="pill sel">선정 교수</span>' : '') + '<br><small>' + esc(b.orgName) + ' · ' + esc(b.email) + '</small>';
+    return esc(b.name) + (b.selected ? ' <span class="pill sel">선정 교수</span>' : '') +
+      '<br><small>' + (b.userType ? esc(b.userType) + ' · ' : '') + esc(b.orgName) + ' · ' + esc(b.email) + '</small>' +
+      (b.onBehalf ? '<br><small>대리 예약 → ' + esc(b.onBehalf) + ' 교수</small>' : '');
   }
   function when(b) { return esc(b.dateLabel) + '<br><b>' + esc(b.start) + '–' + esc(b.end) + '</b>'; }
   function table(head, rows) {
@@ -132,6 +134,13 @@
                 '</td><td class="num">' + hrs(r.usedMin) + '</td><td class="num">' + pct(r.utilization) + '</td><td class="num">' + pct(r.supportRatio) +
                 '</td><td class="num">' + r.noShows + '</td><td class="num">' + pct(r.noShowRate) + '</td></tr>';
             }));
+        var ts = (D.typeStats || []).filter(function (r) { return r.month === mo; });
+        if (ts.length) html += '<h3 style="margin:14px 0 6px;font-size:15px">이용자 구분별</h3>' +
+          table(['이용자 구분', '예약 건수', '예약(시간)', '대리 예약', '노쇼'], ts.map(function (r) {
+            var b = r.userType === '전체' ? ' style="font-weight:800"' : '';
+            return '<tr' + b + '><td>' + esc(r.userType) + '</td><td class="num">' + r.bookings + '</td><td class="num">' + hrs(r.reservedMin) +
+              '</td><td class="num">' + r.proxy + '</td><td class="num">' + r.noShows + '</td></tr>';
+          }));
       });
     }
     if (VIEW === 'qr') {

@@ -14,13 +14,15 @@ var SHEETS = {
   SEMESTER: '학기',
   CONFIG: '설정',
   STATS: '통계',
+  TYPE_STATS: '이용자구분통계',
   PURGE: '삭제대장',
 };
 
 var HEADERS = {};
 HEADERS[SHEETS.STUDIO] = ['코드', '소속', '위치', '주요장비', '내선', '사용', '캘린더ID', 'QR키'];
 HEADERS[SHEETS.BOOKING] = ['예약번호', '생성일시', '스튜디오', '날짜', '시작', '종료', '이메일', '성명', '소속',
-  '촬영유형', '용도', '촬영지원', '동의일시', '상태', '이벤트ID', '체크인일시', '처리자', '처리메모', '수정일시', '삭제예정일'];
+  '촬영유형', '용도', '촬영지원', '동의일시', '상태', '이벤트ID', '체크인일시', '처리자', '처리메모', '수정일시', '삭제예정일',
+  '이용자구분', '대리대상이메일'];
 HEADERS[SHEETS.SANCTION] = ['이메일', '학기', '노쇼횟수', '제재시작', '제재종료', '근거예약번호', '상태', '처리메모', '기록일시'];
 HEADERS[SHEETS.ADMIN] = ['이메일', '성명', '비고'];
 HEADERS[SHEETS.SELECTED] = ['이메일', '학기', '과목명', '비고'];
@@ -29,6 +31,7 @@ HEADERS[SHEETS.SEMESTER] = ['학기', '시작일', '종료일'];
 HEADERS[SHEETS.CONFIG] = ['항목', '값', '설명'];
 HEADERS[SHEETS.STATS] = ['월', '스튜디오', '운영가능(시간)', '예약(시간)', '실이용(시간)', '이용률', '예약률',
   '예약건수', '지원요청', '지원요청비율', '노쇼', '노쇼율', '갱신일시'];
+HEADERS[SHEETS.TYPE_STATS] = ['월', '이용자구분', '예약건수', '예약(시간)', '대리예약', '노쇼', '갱신일시'];
 HEADERS[SHEETS.PURGE] = ['삭제일', '구분', '대상 번호', '건수'];
 
 var Db = (function () {
@@ -155,7 +158,7 @@ var CONFIG_KEYS = [
   ['선정 교수 예약 가능 일수', 'selectedAdvanceDays', 'number', '56', "예약 우선권: '선정교수' 탭에 있는 교수는 이 일수까지(56 = 8주)"],
 ];
 var CONFIG_TEXT = [
-  ['학교 도메인', 'domain', 'hanyang.ac.kr', '이 도메인 계정만 이용 가능. 비워 두면 배포 설정(도메인 제한)만 사용'],
+  ['학교 도메인', 'domain', 'hanyang.ac.kr', '이 도메인 계정이면 교수·강사·직원·조교 누구나 예약 가능. 비워 두면 배포 설정(도메인 제한)만 사용'],
   ['발신 이름', 'senderName', 'HY FLIP 에듀테크혁신팀', '메일 발신자 표시 이름'],
   ['담당자 연락처', 'contact', '교육혁신처 에듀테크혁신팀 HY FLIP 담당 (02-2220-1406)', '메일·화면에 표시'],
   ['담당자 알림 메일', 'staffEmail', '', '촬영 지원 요청이 오면 알림 받을 주소(쉼표로 여러 개)'],
@@ -163,6 +166,7 @@ var CONFIG_TEXT = [
   ['전날 리마인더 메일(Y/N)', 'reminder', 'Y', '이용 전날 15시에 안내 메일 발송'],
   ['촬영 유형', 'shootTypes', '일반 강의, 태블릿 판서 강의, 기타', '쉼표로 구분'],
   ['용도', 'purposes', '플립러닝 개발, 일반 강의, 직무·기타', '쉼표로 구분'],
+  ['이용자 구분', 'userTypes', '교수, 강사·비전임 교원, 직원, 조교(학과·개인), 기타', '예약 화면 필수 선택지(쉼표로 구분). 통계에 구분별로 집계'],
 ];
 
 function loadConfig() {
@@ -181,6 +185,7 @@ function loadConfig() {
   CONFIG_TEXT.forEach(function (d) { c[d[1]] = map[d[0]] !== undefined ? map[d[0]] : d[2]; });
   c.shootTypes = splitList(c.shootTypes);
   c.purposes = splitList(c.purposes);
+  c.userTypes = splitList(c.userTypes);
   return c;
 }
 

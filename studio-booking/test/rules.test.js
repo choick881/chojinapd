@@ -181,3 +181,32 @@ test('월별 통계: 이용률·지원요청 비율·노쇼율', () => {
   const total = rows.find((r) => r.studio === '전체');
   assert.equal(total.bookings, 3);
 });
+
+test('학교 도메인 이메일 판정(대소문자·공백 무시, 형식 검사)', () => {
+  assert.equal(R.isDomainEmail(' TA.Lee@Hanyang.ac.kr ', 'hanyang.ac.kr'), true);
+  assert.equal(R.isDomainEmail('prof@gmail.com', 'hanyang.ac.kr'), false);
+  assert.equal(R.isDomainEmail('prof@hanyang.ac.kr.evil.com', 'hanyang.ac.kr'), false);
+  assert.equal(R.isDomainEmail('not-an-email', ''), false);
+  assert.equal(R.isDomainEmail('a@b.com', ''), true); // 도메인 설정이 비면 형식만
+});
+
+test('대리 예약 대상 검증: 비우면 대리 아님, 학교 계정만, 본인은 불가', () => {
+  assert.deepEqual(R.checkProxy('', 'ta@hanyang.ac.kr', 'hanyang.ac.kr'), { ok: true, email: '' });
+  assert.equal(R.checkProxy('Prof.Kim@hanyang.ac.kr', 'ta@hanyang.ac.kr', 'hanyang.ac.kr').email, 'prof.kim@hanyang.ac.kr');
+  assert.match(R.checkProxy('prof@gmail.com', 'ta@hanyang.ac.kr', 'hanyang.ac.kr').error, /학교 계정/);
+  assert.match(R.checkProxy('TA@hanyang.ac.kr', 'ta@hanyang.ac.kr', 'hanyang.ac.kr').error, /본인/);
+});
+
+test('이용자 구분별 월 집계: 설정 순서 유지·미입력·대리·노쇼, 취소·다른 달 제외', () => {
+  const b = (o) => Object.assign({ date: '2026-12-02', startMin: 600, endMin: 660, status: R.STATUS.CONFIRMED, userType: '교수', onBehalf: '' }, o);
+  const rows = R.userTypeStats([
+    b({}), b({ userType: '조교(학과·개인)', onBehalf: 'p@x', endMin: 720 }), b({ userType: '직원', status: R.STATUS.NO_SHOW }),
+    b({ status: R.STATUS.CANCELLED }), b({ userType: '' }), b({ date: '2026-11-30' }),
+  ], '2026-12', ['교수', '직원', '조교(학과·개인)']);
+  assert.deepEqual(rows.map((r) => r.userType), ['교수', '직원', '조교(학과·개인)', '(미입력)', '전체']);
+  const t = rows.find((r) => r.userType === '조교(학과·개인)');
+  assert.equal(t.reservedMin, 120);
+  assert.equal(t.proxy, 1);
+  const total = rows.find((r) => r.userType === '전체');
+  assert.deepEqual([total.bookings, total.proxy, total.noShows], [4, 1, 1]);
+});

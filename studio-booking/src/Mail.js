@@ -19,7 +19,8 @@ var Mail = (function () {
       '- 스튜디오: ' + studio.code + ' ' + studio.location + ' (' + studio.org + ', 내선 ' + studio.ext + ')',
       '- 촬영 유형: ' + b.shootType + ' / 용도: ' + b.purpose,
       '- 촬영 지원: ' + (b.support ? '필요' : '불필요'),
-    ].join('\n');
+      b.onBehalf ? '- 대리 예약: ' + b.name + '님이 ' + b.onBehalf + ' 교수님 대신 예약 (교수님께 참조로 함께 보냅니다)' : '',
+    ].filter(String).join('\n');
   }
 
   function checkinGuide(cfg) {
@@ -48,15 +49,20 @@ var Mail = (function () {
     MailApp.sendEmail(to, '[HY FLIP] ' + subject, body, opts);
   }
 
+  /** 예약 관련 메일: 대리 예약이면 대상 교수에게 참조 */
+  function sendB(b, subject, body, cfg) {
+    send(b.email, subject, body, cfg, b.onBehalf || '');
+  }
+
   return {
     confirmed: function (b, studio, cfg, note) {
-      send(b.email, '셀프스튜디오 예약이 확정되었습니다 (' + line(b, studio) + ')',
+      sendB(b, '셀프스튜디오 예약이 확정되었습니다 (' + line(b, studio) + ')',
         b.name + '님, 안녕하십니까. 에듀테크혁신팀입니다.\n\n셀프스튜디오 예약이 확정되었습니다.' +
         (note ? '\n' + note : '') + '\n\n' + details(b, studio) + '\n\n' + checkinGuide(cfg) + '\n' + footer(cfg), cfg);
     },
 
     pending: function (b, studio, cfg) {
-      send(b.email, '셀프스튜디오 촬영 지원 요청이 접수되었습니다 (' + line(b, studio) + ')',
+      sendB(b, '셀프스튜디오 촬영 지원 요청이 접수되었습니다 (' + line(b, studio) + ')',
         b.name + '님, 안녕하십니까. 에듀테크혁신팀입니다.\n\n촬영 지원이 필요한 예약으로 접수되어, 해당 시간은 임시로 확보해 두었습니다.' +
         '\n담당자가 일정을 확인한 뒤 확정 또는 변경 결과를 메일로 안내드리겠습니다.\n\n' + details(b, studio) + '\n' + footer(cfg), cfg);
     },
@@ -65,31 +71,31 @@ var Mail = (function () {
       if (!cfg.staffEmail) return;
       send(cfg.staffEmail, '촬영 지원 요청: ' + b.name + ' · ' + line(b, studio),
         '새 촬영 지원 요청이 들어왔습니다. 담당자 화면에서 확정·변경·반려해 주세요.\n\n' + details(b, studio) +
-        '\n- 이용자: ' + b.name + ' (' + b.org + ', ' + b.email + ')\n\n담당자 화면: ' + appUrl('admin'), cfg);
+        '\n- 이용자: ' + b.name + ' (' + (b.userType ? b.userType + ', ' : '') + b.org + ', ' + b.email + ')\n\n담당자 화면: ' + appUrl('admin'), cfg);
     },
 
     adminResult: function (b, studio, cfg, changed) {
-      send(b.email, '셀프스튜디오 촬영 지원 예약이 확정되었습니다 (' + line(b, studio) + ')',
+      sendB(b, '셀프스튜디오 촬영 지원 예약이 확정되었습니다 (' + line(b, studio) + ')',
         b.name + '님, 안녕하십니까. 에듀테크혁신팀입니다.\n\n요청하신 촬영 지원 예약이 확정되었습니다.' +
         (changed ? '\n담당자와 조율한 내용에 따라 일정이 아래와 같이 변경되었습니다.' : '') +
         '\n\n' + details(b, studio) + '\n\n' + checkinGuide(cfg) + '\n' + footer(cfg), cfg);
     },
 
     adminModified: function (b, studio, cfg, memo) {
-      send(b.email, '셀프스튜디오 예약이 변경되었습니다 (' + line(b, studio) + ')',
+      sendB(b, '셀프스튜디오 예약이 변경되었습니다 (' + line(b, studio) + ')',
         b.name + '님, 안녕하십니까. 에듀테크혁신팀입니다.\n\n담당자가 예약 내용을 아래와 같이 변경했습니다.' +
         (memo ? '\n사유: ' + memo : '') + '\n\n' + details(b, studio) + '\n' + footer(cfg), cfg);
     },
 
     rejected: function (b, studio, cfg, reason) {
-      send(b.email, '셀프스튜디오 촬영 지원 요청 결과 안내',
+      sendB(b, '셀프스튜디오 촬영 지원 요청 결과 안내',
         b.name + '님, 안녕하십니까. 에듀테크혁신팀입니다.\n\n요청하신 촬영 지원 예약을 이번에는 확정하지 못했습니다.' +
         '\n사유: ' + (reason || '-') + '\n\n' + details(b, studio) +
         '\n\n다른 시간으로 다시 예약하시거나, 촬영 지원 없이 예약하실 수 있습니다.\n' + footer(cfg), cfg);
     },
 
     cancelled: function (b, studio, cfg, why) {
-      send(b.email, '셀프스튜디오 예약이 취소되었습니다 (' + line(b, studio) + ')',
+      sendB(b, '셀프스튜디오 예약이 취소되었습니다 (' + line(b, studio) + ')',
         b.name + '님, 안녕하십니까. 에듀테크혁신팀입니다.\n\n아래 예약이 취소되었습니다. ' + (why || '') +
         '\n\n' + details(b, studio) + '\n' + footer(cfg), cfg);
     },
@@ -104,7 +110,7 @@ var Mail = (function () {
         body += '학기 중 노쇼가 ' + cfg.sanctionThreshold + '회가 되면 ' + cfg.sanctionDays + '일 동안 예약이 제한됩니다.\n';
       }
       body += '사전에 연락하셨거나 사정이 있었다면 담당자에게 알려 주세요. 확인 후 노쇼를 해제해 드립니다.\n' + footer(cfg);
-      send(b.email, '셀프스튜디오 노쇼 처리 안내' + (sanction ? ' · 예약 제한' : ''), body, cfg);
+      sendB(b, '셀프스튜디오 노쇼 처리 안내' + (sanction ? ' · 예약 제한' : ''), body, cfg);
     },
 
     sanctionLifted: function (email, cfg) {
@@ -114,7 +120,7 @@ var Mail = (function () {
     },
 
     reminder: function (b, studio, cfg) {
-      send(b.email, '내일 셀프스튜디오 예약 안내 (' + line(b, studio) + ')',
+      sendB(b, '내일 셀프스튜디오 예약 안내 (' + line(b, studio) + ')',
         b.name + '님, 안녕하십니까. 에듀테크혁신팀입니다.\n\n내일 셀프스튜디오 예약이 있습니다.' +
         (b.status === Rules.STATUS.PENDING ? '\n(촬영 지원 요청은 아직 담당자 확인 중입니다.)' : '') +
         '\n이용하지 않으시면 오늘 ' + Rules.fmtMin(cfg.deadlineMin) + ' 전까지 꼭 취소해 주세요. 이후 취소나 미이용은 노쇼로 처리됩니다.\n\n' +

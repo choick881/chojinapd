@@ -5,7 +5,7 @@
 function adminView(b, studios, selected, cfg) {
   var s = summarize(b, studios[b.studioId], cfg);
   s.email = b.email;
-  s.selected = !!selected[b.email];
+  s.selected = !!selected[b.email] || (!!b.onBehalf && !!selected[b.onBehalf]);
   s.createdAt = b.createdAt;
   s.handler = b.handler || '';
   return s;
@@ -48,6 +48,7 @@ function apiAdminData() {
     }).sort(byTime).reverse().map(view),
     sanctions: sanctions,
     stats: Rules.monthlyStats(all, studioList, ym, cfg).concat(Rules.monthlyStats(all, studioList, prevYm, cfg)),
+    typeStats: Rules.userTypeStats(all, ym, cfg.userTypes).concat(Rules.userTypeStats(all, prevYm, cfg.userTypes)),
     studios: studioList.map(function (s) {
       var p = publicStudio(s);
       p.active = s.active;

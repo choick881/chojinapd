@@ -15,7 +15,7 @@ function seed(env) {
   env.call('setup');
   env.setConfig('담당자 알림 메일', 'staff@hanyang.ac.kr');
   const f = (o) => Object.assign({ studioId: 'ST01', date: '2026-12-02', startMin: 600, endMin: 660, support: false,
-    name: '박교수', org: '자연과학대학', shootType: '일반 강의', purpose: '플립러닝 개발', agreedPrivacy: true, agreedRules: true }, o);
+    name: '박교수', org: '자연과학대학', userType: '교수', shootType: '일반 강의', purpose: '플립러닝 개발', agreedPrivacy: true, agreedRules: true }, o);
   env.as('prof.park@hanyang.ac.kr');
   env.call('apiCreateBooking', f({ startMin: 600, endMin: 720 }));
   env.call('apiCreateBooking', f({ studioId: 'ST09', date: '2026-12-01', startMin: 840, endMin: 960, support: true }));
@@ -27,6 +27,11 @@ function seed(env) {
   env.call('apiCreateBooking', f({ name: '김교수', org: '경영대학', date: '2026-12-03', startMin: 600, endMin: 690 }));
   // 선정 교수 표시 예시
   env.ss().getSheetByName('선정교수').appendRow(['kim.prof@hanyang.ac.kr', '2027-1학기', '경영통계', '']);
+  // 교직원·조교 예약 예시 (조교는 김교수 대리)
+  env.as('office.choi@hanyang.ac.kr');
+  env.call('apiCreateBooking', f({ name: '최직원', org: '교무처', userType: '직원', studioId: 'ST03', date: '2026-12-01', startMin: 600, endMin: 690, purpose: '직무·기타' }));
+  env.as('ta.jung@hanyang.ac.kr');
+  env.call('apiCreateBooking', f({ name: '정조교', org: '경영학부', userType: '조교(학과·개인)', studioId: 'ST04', date: '2026-12-04', startMin: 780, endMin: 900, onBehalf: 'kim.prof@hanyang.ac.kr' }));
   env.state.outbox = [];
 }
 

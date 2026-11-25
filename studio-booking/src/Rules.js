@@ -83,6 +83,26 @@ var Rules = (function () {
     return c.maxAdvanceDays || null;
   }
 
+  /** 학교 도메인 이메일인지 (domain이 비면 형식만 확인) */
+  function isDomainEmail(email, domain) {
+    email = String(email || '').trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return false;
+    domain = String(domain || '').trim().toLowerCase();
+    return !domain || email.split('@')[1] === domain;
+  }
+
+  /**
+   * 대리 예약(조교·직원이 교수 대신) 검증
+   * @return {ok, email, error} — email이 ''이면 대리 예약 아님
+   */
+  function checkProxy(onBehalf, bookerEmail, domain) {
+    var e = String(onBehalf || '').trim().toLowerCase();
+    if (!e) return { ok: true, email: '' };
+    if (!isDomainEmail(e, domain)) return { ok: false, email: e, error: '교수님 이메일은 학교 계정' + (domain ? '(@' + domain + ')' : '') + ' 주소로 입력해 주세요.' };
+    if (e === String(bookerEmail || '').toLowerCase()) return { ok: false, email: e, error: '본인 예약이면 ‘교수님 대신 예약’을 해제해 주세요.' };
+    return { ok: true, email: e };
+  }
+
   /**
    * 예약 요청 검증
    * @param req {studioId,date,startMin,endMin,support,agreedPrivacy,agreedRules}
@@ -259,6 +279,30 @@ var Rules = (function () {
     return out;
   }
 
+  /** 월별 이용자 구분 집계: [{month,userType,bookings,reservedMin,proxy,noShows}] + '전체' 행 */
+  function userTypeStats(bookings, ym, types) {
+    var map = {}, order = (types || []).slice();
+    var counted = [STATUS.CONFIRMED, STATUS.PENDING, STATUS.CHECKED_IN, STATUS.NO_SHOW];
+    function row(t) {
+      if (!map[t]) { map[t] = { month: ym, userType: t, bookings: 0, reservedMin: 0, proxy: 0, noShows: 0 }; if (order.indexOf(t) === -1) order.push(t); }
+      return map[t];
+    }
+    order.forEach(row);
+    var total = { month: ym, userType: '전체', bookings: 0, reservedMin: 0, proxy: 0, noShows: 0 };
+    for (var i = 0; i < bookings.length; i++) {
+      var b = bookings[i];
+      if (String(b.date).slice(0, 7) !== ym || counted.indexOf(b.status) === -1) continue;
+      var rs = [row(b.userType || '(미입력)'), total];
+      for (var k = 0; k < rs.length; k++) {
+        rs[k].bookings++;
+        rs[k].reservedMin += b.endMin - b.startMin;
+        if (b.onBehalf) rs[k].proxy++;
+        if (b.status === STATUS.NO_SHOW) rs[k].noShows++;
+      }
+    }
+    return order.map(function (t) { return map[t]; }).concat([total]);
+  }
+
   return {
     STATUS: STATUS, OCCUPYING: OCCUPYING, DEFAULTS: DEFAULTS,
     toMin: toMin, fmtMin: fmtMin, addDays: addDays, addYears: addYears, weekday: weekday,
@@ -266,7 +310,8 @@ var Rules = (function () {
     advanceDays: advanceDays, validateRequest: validateRequest, canUserModify: canUserModify,
     noShowDeadlineMin: noShowDeadlineMin, isNoShowDue: isNoShowDue, canCheckin: canCheckin,
     semesterOf: semesterOf, sanctionAfterNoShow: sanctionAfterNoShow,
-    retentionDates: retentionDates, monthlyStats: monthlyStats,
+    retentionDates: retentionDates, monthlyStats: monthlyStats, userTypeStats: userTypeStats,
+    isDomainEmail: isDomainEmail, checkProxy: checkProxy,
   };
 })();
 

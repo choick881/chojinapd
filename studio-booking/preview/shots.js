@@ -22,13 +22,15 @@ const base = 'http://localhost:' + PORT;
     page.on('console', (m) => { if (m.type() === 'error' && !/qrcode|cdnjs|pretendard|ERR_/i.test(m.text())) problems.push('console: ' + m.text()); });
   };
   const scale = Number(process.env.SCALE || 2);
+  // 숨긴 라디오는 화면 좌표 클릭이 고정 하단 바에 가릴 수 있어 요소에서 직접 클릭
+  const pick = (page, sel) => page.$eval(sel, (el) => el.click());
 
   // 1) 모바일 375 — 예약 흐름
   const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: scale });
   const p = await ctx.newPage(); watch(p);
   await p.goto(base + '/?p=book&as=kim.prof@hanyang.ac.kr');
   await p.waitForSelector('.studio');
-  await p.check('input[name=studio][value=ST01]', { force: true });
+  await pick(p, 'input[name=studio][value=ST01]');
   await p.fill('#date', '2026-12-02');
   await p.dispatchEvent('#date', 'change');
   await p.waitForSelector('.slot[data-m="540"]');
@@ -46,6 +48,7 @@ const base = 'http://localhost:' + PORT;
   const errText = await p.textContent('#formErr');
   if (!/촬영 유형|동의/.test(errText)) problems.push('필수 항목 안내 누락: ' + errText);
   await p.selectOption('#shootType', { index: 1 });
+  await p.check('input[name=userType][value="교수"]', { force: true });
   await p.check('input[name=purpose]', { force: true });
   await p.check('#agreePrivacy');
   await p.check('#agreeRules');
@@ -62,7 +65,7 @@ const base = 'http://localhost:' + PORT;
   const p2 = await ctx.newPage(); watch(p2);
   await p2.goto(base + '/?p=book');
   await p2.waitForSelector('.studio');
-  await p2.check('input[name=studio][value=ST05]', { force: true });
+  await pick(p2, 'input[name=studio][value=ST05]');
   await p2.fill('#date', '2026-12-05'); // 토요일
   await p2.dispatchEvent('#date', 'change');
   await p2.waitForSelector('.slot');
@@ -110,6 +113,39 @@ const base = 'http://localhost:' + PORT;
   if (overflow) problems.push('768px 가로 스크롤 발생');
   const overflowM = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   if (overflowM) problems.push('375px 가로 스크롤 발생');
+
+  // 6) 모바일 375 — 조교가 선정 교수 대신 예약(8주 우선권)
+  const q = await ctx.newPage(); watch(q);
+  await q.goto(base + '/?p=book&as=ta.han@hanyang.ac.kr');
+  await q.waitForSelector('.studio');
+  await pick(q, 'input[name=studio][value=ST06]');
+  await q.fill('#date', '2027-01-20'); // 51일 뒤 — 조교 본인 자격(28일)으로는 불가
+  await q.dispatchEvent('#date', 'change');
+  await q.waitForSelector('#slots .note.err');
+  await q.check('#proxy');
+  await q.fill('#onBehalf', 'kim.prof@hanyang.ac.kr');
+  await q.dispatchEvent('#onBehalf', 'change');
+  await q.waitForSelector('#proxyNote:not([hidden])');
+  const pn = await q.textContent('#proxyNote');
+  if (!/56일/.test(pn)) problems.push('대리 예약 우선권 안내 오류: ' + pn);
+  await q.waitForSelector('.slot[data-m="600"]:not(:disabled)');
+  await q.click('.slot[data-m="600"]');
+  await q.click('.slot[data-m="630"]');
+  await q.fill('#name', '한조교'); await q.fill('#org', '경영학부');
+  await q.selectOption('#shootType', { index: 1 });
+  await q.check('input[name=purpose]', { force: true });
+  await q.check('#agreePrivacy'); await q.check('#agreeRules');
+  await q.click('#submit'); // 이용자 구분 미선택 → 안내
+  await q.waitForSelector('#formErr:not([hidden])');
+  if (!/이용자 구분/.test(await q.textContent('#formErr'))) problems.push('이용자 구분 필수 안내 누락');
+  await q.check('input[name=userType][value="조교(학과·개인)"]', { force: true });
+  await shot(q, '09-mobile-proxy');
+  await q.click('#submit');
+  await q.waitForSelector('#view-done:not([hidden]) .big-status');
+  const cc = env.state.outbox.filter((m) => m.to === 'ta.han@hanyang.ac.kr').pop();
+  if (!cc || cc.opts.cc !== 'kim.prof@hanyang.ac.kr') problems.push('대리 예약 확정 메일에 교수 참조 없음');
+  const overflowQ = await q.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  if (overflowQ) problems.push('375px(대리 예약) 가로 스크롤 발생');
 
   console.log('메일 발송(가짜):', env.state.outbox.map((m) => m.to + ' | ' + m.subject).join('\n  '));
   await browser.close();

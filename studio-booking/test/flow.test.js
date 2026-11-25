@@ -7,12 +7,14 @@ const OWNER = 'hyflip@school.ac.kr';
 const A = 'prof.a@school.ac.kr';
 const B = 'prof.b@school.ac.kr';
 const STAFF = 'staff@school.ac.kr';
+const EMP = 'office.kim@school.ac.kr';   // 교직원(행정)
+const TA = 'ta.lee@school.ac.kr';        // 학과·개인 조교
 const kst = (s) => s + ':00+09:00';
 
 function form(o) {
   return Object.assign({
     studioId: 'ST01', date: '2026-12-02', startMin: 600, endMin: 660, support: false,
-    name: '김교수', org: '경영대학', shootType: '일반 강의', purpose: '플립러닝 개발',
+    name: '김교수', org: '경영대학', userType: '교수', shootType: '일반 강의', purpose: '플립러닝 개발',
     agreedPrivacy: true, agreedRules: true,
   }, o);
 }
@@ -50,7 +52,7 @@ test('setup: 시트 탭·스튜디오 10곳·캘린더·관리자·트리거', (
 test('도메인 밖 계정·비로그인은 차단', () => {
   const env = fresh();
   env.as('someone@gmail.com');
-  assert.throws(() => env.call('apiBootstrap'), /학교 계정/);
+  assert.throws(() => env.call('apiBootstrap'), /학교 구글 계정/);
   env.as('');
   assert.throws(() => env.call('apiBootstrap'), /로그인/);
 });
@@ -129,6 +131,84 @@ test('촬영 지원 요청 → 임시 점유·담당자 알림 → 담당자가 
   assert.equal(evs.length, 1);
   assert.match(evs[0].title, /^\[확정\]/);
   assert.match(mailsTo(env, B).pop().subject, /촬영 지원 예약이 확정/);
+});
+
+test('학교 계정이면 교직원·미신청 교수·조교 누구나 예약(부서 계정 아님)', () => {
+  const env = fresh();
+  const boot = env.as(EMP).call('apiBootstrap');
+  assert.deepEqual(Array.from(boot.userTypes), ['교수', '강사·비전임 교원', '직원', '조교(학과·개인)', '기타']);
+  assert.equal(boot.isAdmin, false);
+  assert.equal(env.call('apiCreateBooking', form({ name: '김직원', org: '교무처', userType: '직원', purpose: '직무·기타' })).status, '확정');
+  env.as(TA);
+  assert.equal(env.call('apiCreateBooking', form({ startMin: 720, endMin: 780, name: '이조교', org: '경영학부', userType: '조교(학과·개인)' })).status, '확정');
+  env.as(B); // 플립러닝 미신청 교수
+  assert.equal(env.call('apiCreateBooking', form({ startMin: 840, endMin: 900, purpose: '일반 강의' })).status, '확정');
+  assert.equal(env.sheetRows('예약').map((r) => r['이용자구분']).join(','), '직원,조교(학과·개인),교수');
+  // 이용자 구분은 필수·설정된 값만
+  assert.throws(() => env.call('apiCreateBooking', form({ startMin: 960, endMin: 990, userType: '' })), /이용자 구분/);
+  assert.throws(() => env.call('apiCreateBooking', form({ startMin: 960, endMin: 990, userType: '학생' })), /이용자 구분/);
+  // 담당자 화면·통계에 구분 표시
+  env.as(OWNER).at(kst('2026-12-01T09:00'));
+  const d = env.call('apiAdminData');
+  assert.equal(d.upcoming.find((b) => b.email === TA).userType, '조교(학과·개인)');
+  const dec = d.typeStats.filter((r) => r.month === '2026-12');
+  assert.equal(dec.find((r) => r.userType === '직원').bookings, 1);
+  assert.equal(dec.find((r) => r.userType === '전체').bookings, 3);
+});
+
+test('조교 대리 예약: 선정 교수 이메일이면 8주 우선권, 교수에게 메일 참조·교수 계정으로 체크인', () => {
+  const env = fresh();
+  env.ss().getSheetByName('선정교수').appendRow([A, '2027-1학기', '경영통계', '']);
+  env.as(TA);
+  const ta = { name: '이조교', org: '경영학부', userType: '조교(학과·개인)' };
+  // 본인 자격으로는 4주까지만
+  assert.throws(() => env.call('apiCreateBooking', form(Object.assign({ date: '2027-01-20' }, ta))), /28일/);
+  // 대리 대상 확인: 적용 일수만 돌려줌
+  assert.equal(env.call('apiCheckProxy', A).maxAdvanceDays, 56);
+  assert.equal(env.call('apiCheckProxy', B).maxAdvanceDays, 28);
+  assert.equal(env.call('apiCheckProxy', 'prof@gmail.com').ok, false);
+  assert.equal(env.call('apiCheckProxy', TA).ok, false);
+  assert.throws(() => env.call('apiCreateBooking', form(Object.assign({ date: '2026-12-03', onBehalf: 'prof@gmail.com' }, ta))), /학교 계정/);
+  // 선정 교수 대리 → 51일 뒤 예약 성공
+  const r = env.call('apiCreateBooking', form(Object.assign({ date: '2027-01-20', onBehalf: A.toUpperCase() }, ta)));
+  assert.equal(r.status, '확정');
+  assert.equal(r.onBehalf, A);
+  const row = bookingRow(env, r.id);
+  assert.equal(row['이메일'], TA);
+  assert.equal(row['대리대상이메일'], A);
+  const mail = mailsTo(env, TA).pop();
+  assert.equal(mail.opts.cc, A);
+  assert.match(mail.body, /교수님 대신 예약/);
+  // 미선정 교수 대리는 일반 기간
+  assert.throws(() => env.call('apiCreateBooking', form(Object.assign({ date: '2027-01-21', onBehalf: B }, ta))), /28일/);
+  // 교수 계정 '내 예약'에도 보이고, 교수가 QR 체크인 가능
+  env.as(A);
+  assert.equal(env.call('apiMyBookings').upcoming[0].id, r.id);
+  const st = env.sheetRows('스튜디오').find((s) => s['코드'] === 'ST01');
+  env.at(kst('2027-01-20T10:05'));
+  assert.equal(env.call('apiCheckin', 'ST01', st['QR키']).status, '체크인');
+  // 담당자 화면: 선정 교수 표시 + 대리 정보
+  env.as(OWNER);
+  const v = env.call('apiAdminData').upcoming.find((b) => b.id === r.id);
+  assert.equal(v.selected, true);
+  assert.equal(v.onBehalf, A);
+  assert.equal(v.email, TA);
+});
+
+test('대리 예약의 한도·노쇼는 예약한 계정(조교) 기준', () => {
+  const env = fresh();
+  env.as(TA);
+  const ta = { name: '이조교', org: '경영학부', userType: '조교(학과·개인)', onBehalf: A };
+  env.call('apiCreateBooking', form(Object.assign({ startMin: 540, endMin: 960 }, ta))); // 7시간
+  assert.throws(() => env.call('apiCreateBooking', form(Object.assign({ studioId: 'ST02', startMin: 960, endMin: 1080 }, ta))), /8시간/);
+  env.as(A); // 교수 본인 한도는 별도
+  assert.equal(env.call('apiCreateBooking', form({ studioId: 'ST02', startMin: 960, endMin: 1080 })).status, '확정');
+  // 노쇼 → 조교 계정에 기록, 교수에게 참조
+  env.at(kst('2026-12-02T10:01'));
+  env.call('jobNoShows');
+  const ns = env.state.outbox.filter((m) => /노쇼/.test(m.subject));
+  assert.equal(ns[0].to, TA);
+  assert.equal(ns[0].opts.cc, A);
 });
 
 test('선정 교수 예약 우선권: 일반 4주, 선정 교수 8주', () => {
@@ -302,6 +382,9 @@ test('통계 탭 갱신과 보관기간 삭제(삭제대장에는 개인정보 �
   assert.equal(stats.find((x) => x['스튜디오'] === 'ST01')['실이용(시간)'], 1);
   env.call('jobStats'); // 다시 실행해도 중복 없음
   assert.equal(env.sheetRows('통계').filter((x) => x['월'] === '2026-12').length, 11);
+  const types = env.sheetRows('이용자구분통계').filter((x) => x['월'] === '2026-12');
+  assert.equal(types.length, 6); // 5개 구분 + 전체
+  assert.equal(types.find((x) => x['이용자구분'] === '교수')['예약건수'], 1);
 
   env.at(kst('2029-02-27T03:00'));
   env.call('jobRetention');

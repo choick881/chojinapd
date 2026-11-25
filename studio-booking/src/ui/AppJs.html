@@ -1,7 +1,9 @@
 <script>
-  var S = { d: null, studio: '', date: '', start: null, end: null, avail: null, replace: null, req: 0, busy: false };
+  var S = { d: null, studio: '', date: '', start: null, end: null, avail: null, replace: null, req: 0, busy: false, adv: null, proxyReq: 0 };
 
   function cfg() { return S.d.config; }
+  /** 지금 적용되는 예약 가능 일수(대리 예약 대상 교수가 선정 교수면 늘어남) */
+  function advDays() { return S.adv !== null ? S.adv : cfg().maxAdvanceDays; }
   function today() { return S.d.now.date; }
   function isWorkday(d) { var w = weekdayOf(d); return w !== 0 && w !== 6 && S.d.holidays.indexOf(d) === -1; }
 
@@ -26,12 +28,17 @@
     renderStudios();
     var di = $('#date');
     di.min = today();
-    if (cfg().maxAdvanceDays) di.max = addDays(today(), cfg().maxAdvanceDays);
+    applyAdvance();
     S.date = d.now.min < cfg().closeMin - cfg().slotMin ? today() : addDays(today(), 1);
     di.value = S.date;
     $('#name').value = d.name; $('#org').value = d.org; $('#email').value = d.email;
     $('#shootType').innerHTML = '<option value="">선택해 주세요</option>' +
       d.shootTypes.map(function (t) { return '<option>' + esc(t) + '</option>'; }).join('');
+    $('#userTypes').innerHTML = (d.userTypes || []).map(function (t) {
+      return '<label class="chip"><input type="radio" name="userType" value="' + esc(t) + '"' + (t === d.userType ? ' checked' : '') +
+        '><span>' + esc(t) + '</span></label>';
+    }).join('');
+    $('#onBehalf').placeholder = '예) professor@' + (d.domain || 'hanyang.ac.kr');
     $('#purposes').innerHTML = d.purposes.map(function (p, i) {
       return '<label class="chip"><input type="radio" name="purpose" value="' + esc(p) + '"><span>' + esc(p) + '</span></label>';
     }).join('');
@@ -43,6 +50,33 @@
     updateDock();
     if (BOOT.page === 'my') show('my');
   }).catch(fatal);
+
+  function applyAdvance() {
+    var di = $('#date'), adv = advDays();
+    if (adv) di.max = addDays(today(), adv); else di.removeAttribute('max');
+  }
+
+  /* ---------- 대리 예약 ---------- */
+  function setProxy(on) {
+    $('#proxyBox').hidden = !on;
+    if (!on) { $('#onBehalf').value = ''; $('#proxyNote').hidden = true; S.adv = null; applyAdvance(); renderSlots(); }
+  }
+
+  function checkProxy() {
+    var v = $('#onBehalf').value.trim(), note = $('#proxyNote'), id = ++S.proxyReq;
+    S.adv = null;
+    if (!v) { note.hidden = true; applyAdvance(); renderSlots(); return; }
+    api('apiCheckProxy', v).then(function (r) {
+      if (id !== S.proxyReq) return;
+      note.hidden = false;
+      if (!r.ok) { note.className = 'note err'; note.textContent = r.error; applyAdvance(); renderSlots(); return; }
+      S.adv = r.maxAdvanceDays;
+      applyAdvance(); renderSlots();
+      note.className = 'note info';
+      note.textContent = r.email + ' 교수님 대신 예약합니다. ' +
+        (r.maxAdvanceDays ? '오늘부터 ' + r.maxAdvanceDays + '일 앞까지 예약할 수 있습니다.' : '예약 가능 기간 제한이 없습니다.');
+    }).catch(function () { if (id === S.proxyReq) note.hidden = true; });
+  }
 
   function renderStudios() {
     $('#studios').innerHTML = S.d.studios.map(function (s) {
@@ -60,12 +94,12 @@
       adv += ' 플립러닝 개발 선정 교수는 ' + c.selectedAdvanceDays + '일(' + Math.round(c.selectedAdvanceDays / 7) + '주) 앞까지 먼저 예약할 수 있습니다.';
     }
     var items = [
-      '[예약] ' + adv + ' 1인 1일 최대 ' + dur(c.dailyMaxMin) + ', 30분 단위로 예약합니다.',
+      '[예약] 학교 구글 계정이 있는 교수·강사·직원·조교는 누구나 예약할 수 있습니다. ' + adv + ' 1인 1일 최대 ' + dur(c.dailyMaxMin) + ', 30분 단위로 예약합니다.',
       '[체크인] 시작 ' + c.checkinEarlyMin + '분 전부터 스튜디오 출입문의 QR 코드로 체크인합니다. 시작 후 ' + c.noShowGraceMin +
         '분(짧은 예약은 종료 시각) 안에 체크인하지 않으면 노쇼로 처리됩니다.',
       '[취소·변경] 이용 전날 ' + fmtMin(c.deadlineMin) + '까지 ‘내 예약’에서 직접 할 수 있습니다. 그 이후의 취소나 미이용은 노쇼입니다.',
       '[노쇼 제재] 학기 중 노쇼 ' + c.sanctionThreshold + '회부터 ' + c.sanctionDays + '일 동안 새 예약이 제한됩니다. 이미 잡아 둔 예약은 유지됩니다.',
-      '[본인 이용] 예약한 본인(또는 함께 촬영하는 사람)만 이용하며, 예약을 다른 사람에게 넘기지 않습니다.',
+      '[본인 이용] 예약한 본인, 조교가 대신 예약한 경우의 해당 교수님, 함께 촬영하는 사람만 이용하며, 예약을 다른 사람에게 넘기지 않습니다.',
       '[장비] 카메라·조명·녹화기 설정을 임의로 바꾸거나 장비를 밖으로 가져가지 않습니다. 이상이나 파손을 발견하면 바로 담당자(' + S.d.contact + ')에게 알립니다.',
       '[정리] 사용 후 장비 전원을 끄고 처음 상태로 정리합니다. 녹화 파일은 개인 저장장치로 옮기고 장비에 남은 파일은 지웁니다. 음식물은 반입하지 않습니다.',
       '[야간·주말 이용] 담당자 근무시간(평일 ' + fmtMin(c.supportStartMin) + '~' + fmtMin(c.supportEndMin) +
@@ -85,7 +119,9 @@
       if (S.start !== null && !rangeFree(S.start, S.end)) clearSel();
       renderSlots(); updateDock();
     });
-    ['#name', '#org', '#shootType', '#agreePrivacy', '#agreeRules'].forEach(function (id) {
+    $('#proxy').addEventListener('change', function (e) { setProxy(e.target.checked); });
+    $('#onBehalf').addEventListener('change', checkProxy);
+    ['#name', '#org', '#shootType', '#agreePrivacy', '#agreeRules', '#onBehalf'].forEach(function (id) {
       $(id).addEventListener('change', function () { $('#formErr').hidden = true; });
     });
   }
@@ -134,8 +170,8 @@
     note.hidden = true;
     if (!S.d) return;
     if (S.date && S.date < today()) { box.innerHTML = '<div class="note err">지난 날짜는 예약할 수 없습니다.</div>'; return; }
-    if (S.date && cfg().maxAdvanceDays && S.date > addDays(today(), cfg().maxAdvanceDays)) {
-      box.innerHTML = '<div class="note err">오늘부터 ' + cfg().maxAdvanceDays + '일 이내만 예약할 수 있습니다.</div>'; return;
+    if (S.date && advDays() && S.date > addDays(today(), advDays())) {
+      box.innerHTML = '<div class="note err">오늘부터 ' + advDays() + '일 이내만 예약할 수 있습니다.</div>'; return;
     }
     if (S.date && $('#support').checked && !isWorkday(S.date)) {
       note.hidden = false; note.textContent = '주말·공휴일에는 촬영 지원을 신청할 수 없습니다. 지원 없이 예약하시거나 평일을 골라 주세요.';
@@ -195,11 +231,13 @@
 
   /* ---------- 제출 ---------- */
   function collect() {
-    var p = $('input[name=purpose]:checked');
+    var p = $('input[name=purpose]:checked'), u = $('input[name=userType]:checked');
     return {
       studioId: S.studio, date: S.date, startMin: S.start, endMin: S.end, support: $('#support').checked,
       name: $('#name').value.trim(), org: $('#org').value.trim(), shootType: $('#shootType').value,
-      purpose: p ? p.value : '', agreedPrivacy: $('#agreePrivacy').checked, agreedRules: $('#agreeRules').checked,
+      purpose: p ? p.value : '', userType: u ? u.value : '',
+      proxy: $('#proxy').checked, onBehalf: $('#proxy').checked ? $('#onBehalf').value.trim() : '',
+      agreedPrivacy: $('#agreePrivacy').checked, agreedRules: $('#agreeRules').checked,
       replaceId: S.replace ? S.replace.id : '',
     };
   }
@@ -218,6 +256,8 @@
     if (f.startMin === null) e.push('· 시간을 선택해 주세요.');
     if (!f.name) e.push('· 성명을 입력해 주세요.');
     if (!f.org) e.push('· 소속을 입력해 주세요.');
+    if ((S.d.userTypes || []).length && !f.userType) e.push('· 이용자 구분을 선택해 주세요.');
+    if (f.proxy && !f.onBehalf) e.push('· 대신 예약할 교수님 이메일을 입력해 주세요.');
     if (!f.shootType) e.push('· 촬영 유형을 선택해 주세요.');
     if (!f.purpose) e.push('· 용도를 선택해 주세요.');
     if (!f.agreedPrivacy) e.push('· 개인정보 수집·이용에 동의해 주세요.');
@@ -240,7 +280,9 @@
       '<div class="when" style="margin-top:8px">' + esc(b.dateLabel) + ' ' + esc(b.start) + '–' + esc(b.end) + '</div>' +
       '<h3>' + esc(b.studioId) + ' ' + esc(b.location) + '</h3>' +
       '<dl><dt>예약번호</dt><dd>' + esc(b.id) + '</dd><dt>촬영 유형</dt><dd>' + esc(b.shootType) + '</dd>' +
-      '<dt>용도</dt><dd>' + esc(b.purpose) + '</dd><dt>스튜디오 내선</dt><dd>' + esc(b.ext) + '</dd>' +
+      '<dt>용도</dt><dd>' + esc(b.purpose) + '</dd>' +
+      (b.onBehalf ? '<dt>대리 예약</dt><dd>' + esc(b.name + ' → ' + b.onBehalf + ' 교수님') + '</dd>' : '') +
+      '<dt>스튜디오 내선</dt><dd>' + esc(b.ext) + '</dd>' +
       (b.checkinAt ? '<dt>체크인</dt><dd>' + esc(b.checkinAt) + '</dd>' : '') + '</dl>' + (actions || '') + '</article>';
   }
 
@@ -289,8 +331,9 @@
       html += '<section class="step"><div class="step-h"><h2>다가오는 예약</h2></div>';
       if (!d.upcoming.length) html += '<div class="empty">예정된 예약이 없습니다.</div>';
       d.upcoming.forEach(function (b, i) {
+        var byMe = b.booker === S.d.email;
         var act = b.canModify ?
-          '<div class="actions"><button class="btn small" onclick="changeMy(' + i + ')">변경</button>' +
+          '<div class="actions">' + (byMe ? '<button class="btn small" onclick="changeMy(' + i + ')">변경</button>' : '') +
           '<button class="btn small danger" onclick="cancelMy(\'' + esc(b.id) + '\')">취소</button></div>' :
           (b.status === '체크인' ? '' : '<p class="hint">이용 전날 ' + esc(d.deadline) + ' 이후에는 직접 취소·변경할 수 없습니다. 담당자(' + esc(d.contact) + ')에게 연락해 주세요.</p>');
         html += bookingCard(b, act);
@@ -326,6 +369,10 @@
     S.start = b.startMin; S.end = b.endMin;
     if (S.d.purposes.indexOf(b.purpose) !== -1) $('input[name=purpose][value="' + b.purpose + '"]').checked = true;
     if (S.d.shootTypes.indexOf(b.shootType) !== -1) $('#shootType').value = b.shootType;
+    var ut = b.userType && $('input[name=userType][value="' + b.userType + '"]');
+    if (ut) ut.checked = true;
+    $('#proxy').checked = !!b.onBehalf; setProxy(!!b.onBehalf);
+    if (b.onBehalf) { $('#onBehalf').value = b.onBehalf; checkProxy(); }
     var n = $('#replacing'); n.hidden = false;
     n.innerHTML = '<b>예약 변경 중</b> — ' + esc(b.id) + ' (' + esc(b.dateLabel) + ' ' + esc(b.start) + '–' + esc(b.end) + ', ' + esc(b.location) + ')<br>' +
       '새 스튜디오·시간을 고른 뒤 “이 시간으로 변경”을 누르면 기존 예약은 자동으로 취소됩니다. ' +

@@ -2,7 +2,7 @@
  * 시간 트리거 작업 (setup()이 자동 설치)
  *  - jobNoShows      : 10분마다 — 미체크인 노쇼 판정·제재, 미확정 지원요청 자동 취소
  *  - jobReminders    : 매일 15시 — 내일 예약 리마인더
- *  - jobStats        : 매일 02시 — '통계' 탭 갱신(이번 달·지난달)
+ *  - jobStats        : 매일 02시 — '통계'·'이용자구분통계' 탭 갱신(이번 달·지난달)
  *  - jobRetention    : 매월 1일 03시 — 보관기간 지난 개인정보·예약 기록 삭제
  */
 
@@ -91,6 +91,19 @@ function jobStats() {
       });
     });
     if (out.length) sh.getRange(sh.getLastRow() + 1, 1, out.length, out[0].length).setValues(out);
+
+    // 이용자 구분별 (교수·강사·직원·조교 등)
+    var ts = Db.sheet(SHEETS.TYPE_STATS);
+    Db.removeRows(SHEETS.TYPE_STATS, Db.rows(SHEETS.TYPE_STATS).filter(function (r) {
+      return months.indexOf(String(r['월'])) !== -1;
+    }).map(function (r) { return r._row; }));
+    var tout = [];
+    months.forEach(function (m) {
+      Rules.userTypeStats(all, m, cfg.userTypes).forEach(function (r) {
+        tout.push([r.month, r.userType, r.bookings, h(r.reservedMin), r.proxy, r.noShows, now.stamp]);
+      });
+    });
+    if (tout.length) ts.getRange(ts.getLastRow() + 1, 1, tout.length, tout[0].length).setValues(tout);
   });
 }
 

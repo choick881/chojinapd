@@ -9,9 +9,17 @@ function currentUser() {
   var email = String(Session.getActiveUser().getEmail() || '').toLowerCase();
   if (!email) throw new Error('학교 구글 계정으로 로그인한 뒤 다시 열어 주세요.');
   var domain = String(loadConfig().domain || '').toLowerCase();
-  if (domain && email.split('@')[1] !== domain) throw new Error('학교 계정(@' + domain + ')으로만 이용할 수 있습니다.');
+  if (!Rules.isDomainEmail(email, domain)) {
+    throw new Error('학교 구글 계정(@' + domain + ')으로 로그인해야 예약할 수 있습니다. 개인 Gmail 계정으로는 이용할 수 없습니다.');
+  }
   return email;
 }
+
+/** 예약을 본 사람이 '자기 예약'으로 볼 수 있는지: 예약한 계정 또는 대리 예약의 대상 교수 */
+function isMine(b, email) { return b.email === email || (!!b.onBehalf && b.onBehalf === email); }
+
+/** 예약 우선권: 본인 또는 대리 대상 교수가 '선정교수' 탭에 있으면 적용 */
+function hasPriority(email, onBehalf) { return isSelectedProfessor(email) || (!!onBehalf && isSelectedProfessor(onBehalf)); }
 
 function isAdmin(email) {
   return Db.rows(SHEETS.ADMIN).some(function (r) { return String(r['이메일']).toLowerCase().trim() === email; });
@@ -72,6 +80,7 @@ function toBooking(r) {
     email: String(r['이메일']).toLowerCase(), name: r['성명'], org: r['소속'], shootType: r['촬영유형'],
     purpose: r['용도'], support: String(r['촬영지원']) === 'Y', status: String(r['상태']), eventId: r['이벤트ID'],
     checkinAt: r['체크인일시'], handler: r['처리자'], memo: r['처리메모'],
+    userType: String(r['이용자구분'] || ''), onBehalf: String(r['대리대상이메일'] || '').toLowerCase().trim(),
   };
 }
 
@@ -114,8 +123,9 @@ function eventTitle(b) {
 }
 
 function eventDescription(b) {
-  return ['예약번호: ' + b.id, '이용자: ' + b.name + ' / ' + b.org, '촬영유형: ' + b.shootType,
-    '용도: ' + b.purpose, '촬영 지원: ' + (b.support ? '필요' : '불필요')].join('\n');
+  return ['예약번호: ' + b.id, '이용자: ' + b.name + ' / ' + b.org + (b.userType ? ' (' + b.userType + ')' : ''),
+    b.onBehalf ? '대리 예약 대상 교수: ' + b.onBehalf : '', '촬영유형: ' + b.shootType,
+    '용도: ' + b.purpose, '촬영 지원: ' + (b.support ? '필요' : '불필요')].filter(String).join('\n');
 }
 
 function createEvent(studio, b) {
@@ -166,11 +176,13 @@ function apiBootstrap() {
   var last = mine[mine.length - 1];
   var selected = isSelectedProfessor(email);
   var adv = Rules.advanceDays(cfg, selected);
-  var horizon = Rules.addDays(now.date, adv || 180);
+  // 대리 예약으로 선정 교수 기간까지 늘어날 수 있으므로 공휴일은 더 긴 쪽까지 불러옴
+  var horizon = Rules.addDays(now.date, Math.max(adv || 180, cfg.selectedAdvanceDays || 0));
   return {
     email: email,
     name: last ? last.name : '',
     org: last ? last.org : '',
+    userType: last ? last.userType : '',
     isAdmin: isAdmin(email),
     isSelected: selected,
     studios: loadStudios(false).map(publicStudio),
@@ -182,11 +194,26 @@ function apiBootstrap() {
     },
     shootTypes: cfg.shootTypes,
     purposes: cfg.purposes,
+    userTypes: cfg.userTypes,
+    domain: cfg.domain,
     contact: cfg.contact,
     now: now,
     sanctionUntil: activeSanctionUntil(email, now.date),
     holidays: loadHolidays(now.date, horizon),
   };
+}
+
+/**
+ * 대리 예약 대상 교수 확인: 이메일 형식·도메인 검사 + 적용될 예약 가능 일수
+ * (선정 여부 자체는 내보내지 않고, 적용 일수만 돌려줌)
+ */
+function apiCheckProxy(onBehalf) {
+  var email = currentUser();
+  var cfg = loadConfig();
+  var p = Rules.checkProxy(onBehalf, email, cfg.domain);
+  if (!p.ok) return { ok: false, error: p.error };
+  var adv = Rules.advanceDays(cfg, hasPriority(email, p.email));
+  return { ok: true, email: p.email, maxAdvanceDays: adv };
 }
 
 /** 선택한 스튜디오·날짜의 빈 시간 조회 (다른 사람 이름은 내보내지 않음) */
@@ -210,7 +237,8 @@ function apiAvailability(studioCode, date, replaceId) {
 
 /**
  * 예약 생성. replaceId가 있으면 기존 예약을 새 내용으로 변경(새 예약 등록 후 기존 취소)
- * form: {studioId,date,startMin,endMin,support,name,org,shootType,purpose,agreedPrivacy,agreedRules,replaceId}
+ * form: {studioId,date,startMin,endMin,support,name,org,userType,onBehalf,shootType,purpose,agreedPrivacy,agreedRules,replaceId}
+ * 한도·노쇼·제재는 예약한 계정 기준. onBehalf(대리 대상 교수)는 우선권·메일 참조·체크인에만 사용
  */
 function apiCreateBooking(form) {
   var email = currentUser();
@@ -223,6 +251,9 @@ function apiCreateBooking(form) {
     if (!name || !org) throw new Error('성명과 소속을 입력해 주세요.');
     if (cfg.shootTypes.indexOf(form.shootType) === -1) throw new Error('촬영 유형을 선택해 주세요.');
     if (cfg.purposes.indexOf(form.purpose) === -1) throw new Error('용도를 선택해 주세요.');
+    if (cfg.userTypes.length && cfg.userTypes.indexOf(form.userType) === -1) throw new Error('이용자 구분을 선택해 주세요.');
+    var proxy = Rules.checkProxy(form.onBehalf, email, cfg.domain);
+    if (!proxy.ok) throw new Error(proxy.error);
 
     var old = null;
     if (form.replaceId) {
@@ -245,13 +276,14 @@ function apiCreateBooking(form) {
         return b.email === email && b.date === req.date && isOccupying(b) && (!old || b.id !== old.id);
       }),
       sanctionUntil: activeSanctionUntil(email, now.date),
-      selected: isSelectedProfessor(email),
+      selected: hasPriority(email, proxy.email),
     });
     if (!check.ok) throw new Error(check.errors.join('\n'));
 
     var b = {
       id: nextBookingId(), studioId: studio.code, date: req.date, startMin: req.startMin, endMin: req.endMin,
       email: email, name: name, org: org, shootType: form.shootType, purpose: form.purpose, support: req.support,
+      userType: String(form.userType || ''), onBehalf: proxy.email,
       status: req.support ? Rules.STATUS.PENDING : Rules.STATUS.CONFIRMED,
     };
     b.eventId = createEvent(studio, b);
@@ -261,6 +293,7 @@ function apiCreateBooking(form) {
       '시작': Rules.fmtMin(b.startMin), '종료': Rules.fmtMin(b.endMin), '이메일': email, '성명': name, '소속': org,
       '촬영유형': b.shootType, '용도': b.purpose, '촬영지원': b.support ? 'Y' : '', '동의일시': now.stamp,
       '상태': b.status, '이벤트ID': b.eventId, '처리메모': old ? old.id + '에서 변경' : '', '삭제예정일': ret.personal,
+      '이용자구분': b.userType, '대리대상이메일': b.onBehalf,
     });
     if (old) {
       deleteEvent(findStudio(old.studioId), old.eventId);
@@ -289,6 +322,7 @@ function summarize(b, studio, cfg) {
     status: b.status, support: b.support, shootType: b.shootType, purpose: b.purpose, name: b.name, orgName: b.org,
     canModify: (b.status === Rules.STATUS.CONFIRMED || b.status === Rules.STATUS.PENDING) && Rules.canUserModify(b, nowKst(), cfg),
     checkinAt: b.checkinAt || '', memo: b.memo || '',
+    userType: b.userType || '', onBehalf: b.onBehalf || '', booker: b.email,
   };
 }
 
@@ -298,7 +332,7 @@ function apiMyBookings() {
   var today = nowKst().date;
   var studios = {};
   loadStudios(true).forEach(function (s) { studios[s.code] = s; });
-  var mine = allBookings().filter(function (b) { return b.email === email; });
+  var mine = allBookings().filter(function (b) { return isMine(b, email); });
   mine.sort(function (a, b) { return (a.date + a.start) < (b.date + b.start) ? -1 : 1; });
   var upcoming = mine.filter(function (b) { return b.date >= today && isOccupying(b); });
   var past = mine.filter(function (b) { return upcoming.indexOf(b) === -1; }).reverse().slice(0, 20);
@@ -316,7 +350,7 @@ function apiCancelBooking(id) {
   var cfg = loadConfig();
   var res = withLock(function () {
     var b = findBooking(id);
-    if (b.email !== email) throw new Error('본인 예약만 취소할 수 있습니다.');
+    if (!isMine(b, email)) throw new Error('본인 예약만 취소할 수 있습니다.');
     if (b.status !== Rules.STATUS.CONFIRMED && b.status !== Rules.STATUS.PENDING) throw new Error('취소할 수 없는 예약입니다. (현재: ' + b.status + ')');
     var now = nowKst();
     if (!Rules.canUserModify(b, now, cfg)) {
@@ -336,7 +370,7 @@ function apiCancelBooking(id) {
 
 function findCheckinTarget(email, studio, now, cfg) {
   var todays = allBookings().filter(function (b) {
-    return b.email === email && b.studioId === studio.code && b.date === now.date && isOccupying(b);
+    return isMine(b, email) && b.studioId === studio.code && b.date === now.date && isOccupying(b);
   }).sort(function (a, b) { return a.startMin - b.startMin; });
   for (var i = 0; i < todays.length; i++) {
     if (Rules.canCheckin(todays[i], now, cfg).ok) return { booking: todays[i] };
