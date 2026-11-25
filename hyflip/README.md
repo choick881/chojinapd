@@ -7,7 +7,7 @@
 - 운영: [docs/운영매뉴얼.md](docs/운영매뉴얼.md)
 - 정의서 검토: [docs/기능정의서_검토의견.md](docs/기능정의서_검토의견.md)
 - 진행 계획: [docs/plans/PLAN_hyflip.md](docs/plans/PLAN_hyflip.md)
-- 2027-1 설정값: [docs/설정값_2027-1.md](docs/설정값_2027-1.md) · 변경내역: [v1.0.1](docs/변경내역_v1.0.1.md), [v1.0.3](docs/변경내역_v1.0.3.md)
+- 2027-1 설정값: [docs/설정값_2027-1.md](docs/설정값_2027-1.md) · 시트 직접 입력: [docs/시트_직접입력_가이드.md](docs/시트_직접입력_가이드.md) · 변경내역: [v1.0.1](docs/변경내역_v1.0.1.md), [v1.0.3](docs/변경내역_v1.0.3.md)
 - 화면 캡처: [docs/screenshots](docs/screenshots) · 12/4 점검표: [docs/1204-checklist.html](docs/1204-checklist.html)
 
 ## 폴더 구조
