@@ -8,6 +8,7 @@
 | `docs/설치가이드.md` | 처음 설치와 12/4 내부 테스트 체크리스트 |
 | `docs/변경내역_v1.0.1.md` | v1.0 → v1.0.1 변경내역 (7건) |
 | `docs/배포자동화.md` | clasp 배포 방법, 테스트용 사본 준비, 직접 하셔야 할 일 |
+| `scripts/setup-google.js` | 구글 설정 마법사 (`npm run setup:google`): API 켜기·로그인·사본 연결·테스트 배포 |
 | `scripts/deploy.sh` | 테스트 → push → 배포 (`npm run deploy:test` / `deploy:prod`) |
 | `test/` | 가짜 시트·서버로 돌리는 자동 테스트 |
 
