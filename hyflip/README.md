@@ -7,7 +7,8 @@
 | `src/` | Apps Script에 올라가는 파일: `Code.gs`, `Index.html`, `Pdf.html`, `appsscript.json` |
 | `docs/설치가이드.md` | 처음 설치와 12/4 내부 테스트 체크리스트 |
 | `docs/변경내역_v1.0.1.md` | v1.0 → v1.0.1 변경내역 (7건) |
-| `docs/배포자동화.md` | clasp로 GitHub → Apps Script 배포하는 방법 |
+| `docs/배포자동화.md` | clasp 배포 방법, 테스트용 사본 준비, 직접 하셔야 할 일 |
+| `scripts/deploy.sh` | 테스트 → push → 배포 (`npm run deploy:test` / `deploy:prod`) |
 | `test/` | 가짜 시트·서버로 돌리는 자동 테스트 |
 
 ## 자동 테스트
@@ -19,6 +20,7 @@ npm run check     # 문법 검사만
 ```
 
 GitHub에 올리면 `.github/workflows/hyflip-test.yml`이 같은 테스트를 자동으로 돌립니다.
+배포는 `.github/workflows/hyflip-deploy.yml`에서 버튼을 눌러야만 실행됩니다.
 
 ## v1.0.2 요약
 
