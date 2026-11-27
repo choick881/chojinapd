@@ -1,0 +1,20 @@
+{
+  "name": "hyflip-studio-booking",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HY FLIP 셀프스튜디오 예약 웹앱 (Google Apps Script)",
+  "scripts": {
+    "test": "node --test test/rules.test.js test/flow.test.js",
+    "preview": "node preview/server.js",
+    "shots": "node preview/shots.js",
+    "login": "clasp login",
+    "create": "node tools/create.js",
+    "push": "clasp push",
+    "deploy": "clasp deploy --description \"HY FLIP 셀프스튜디오 예약\"",
+    "deployments": "clasp deployments",
+    "open": "clasp open"
+  },
+  "devDependencies": {
+    "@google/clasp": "2.4.2"
+  }
+}

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <?!= include('ui/Styles'); ?>
+  <style>
+    .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+    .qr-card { background: #fff; border: 2px solid var(--ink); padding: 16px; text-align: center; break-inside: avoid; }
+    .qr-card .qr svg { width: 100%; max-width: 190px; height: auto; }
+    .qr-card h3 { font-size: 22px; margin: 6px 0 0; }
+    .qr-card p { margin: 4px 0; font-size: 13px; color: var(--muted); }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin: 14px 0; }
+    .toolbar .field { margin: 0; min-width: 160px; }
+    @media print { .qr-grid { grid-template-columns: repeat(2, 1fr); } .qr-card { margin-bottom: 18px; } }
+  </style>
+</head>
+<body>
+<div class="wrap wide">
+  <header class="top">
+    <div class="eyebrow">HY FLIP · 셀프스튜디오</div>
+    <h1>담당자 화면</h1>
+    <div class="who" id="who">불러오는 중…</div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-v="pending" aria-selected="true">지원 요청<span class="n" id="nPending">0</span></button>
+      <button class="tab" role="tab" data-v="upcoming" aria-selected="false">예약 현황</button>
+      <button class="tab" role="tab" data-v="noshow" aria-selected="false">노쇼·제재</button>
+      <button class="tab" role="tab" data-v="stats" aria-selected="false">통계</button>
+      <button class="tab" role="tab" data-v="qr" aria-selected="false">QR 인쇄</button>
+      <a class="tab" href="#" onclick="go('book'); return false;">예약 화면</a>
+    </nav>
+  </header>
+  <main id="main"><div class="loading">불러오는 중…</div></main>
+</div>
+
+<dialog id="dlg">
+  <form method="dialog" id="dlgForm">
+    <h3 id="dlgTitle"></h3>
+    <div id="dlgBody"></div>
+    <div id="dlgErr" class="note err" hidden></div>
+    <div class="dlg-actions">
+      <button class="btn" value="cancel" formnovalidate>닫기</button>
+      <button class="btn primary" id="dlgOk" value="ok">확인</button>
+    </div>
+  </form>
+</dialog>
+
+<script>var BOOT = <?!= boot ?>;</script>
+<?!= include('ui/Common'); ?>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+  var D = null, VIEW = 'pending', FILTER = { studio: '', date: '' };
+
+  function load() {
+    api('apiAdminData').then(function (d) {
+      D = d;
+      $('#who').innerHTML = '기준 학기 ' + esc(d.semester) + ' · <a href="' + esc(d.spreadsheetUrl) + '" target="_blank" rel="noopener">관리 시트 열기</a>';
+      $('#nPending').textContent = d.pending.length;
+      render();
+    }).catch(function (e) { $('#main').innerHTML = '<div class="note err">' + esc(e.message) + '</div>'; $('#who').textContent = ''; });
+  }
+  $$('.tab[data-v]').forEach(function (t) {
+    t.addEventListener('click', function () {
+      VIEW = t.dataset.v;
+      $$('.tab[data-v]').forEach(function (x) { x.setAttribute('aria-selected', x === t); });
+      render();
+    });
+  });
+
+  function who(b) {
+    return esc(b.name) + (b.selected ? ' <span class="pill sel">선정 교수</span>' : '') +
+      '<br><small>' + (b.userType ? esc(b.userType) + ' · ' : '') + esc(b.orgName) + ' · ' + esc(b.email) + '</small>' +
+      (b.onBehalf ? '<br><small>대리 예약 → ' + esc(b.onBehalf) + ' 교수</small>' : '');
+  }
+  function when(b) { return esc(b.dateLabel) + '<br><b>' + esc(b.start) + '–' + esc(b.end) + '</b>'; }
+  function table(head, rows) {
+    return '<div class="tbl-wrap"><table class="tbl"><thead><tr>' + head.map(function (h) { return '<th>' + h + '</th>'; }).join('') +
+      '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';
+  }
+  function btn(label, fn, cls) { return '<button class="btn small ' + (cls || '') + '" onclick="' + fn + '">' + label + '</button>'; }
+
+  function render() {
+    if (!D) return;
+    var m = $('#main'), html = '';
+    if (VIEW === 'pending') {
+      html = '<p class="hint">촬영 지원이 필요한 예약입니다. 시간은 임시로 잡혀 있습니다. 확정·조정·반려하면 이용자에게 메일이 갑니다. 시작 시각까지 처리하지 않으면 자동 취소됩니다.</p>';
+      html += D.pending.length ? table(['일시', '스튜디오', '이용자', '촬영 유형 / 용도', '처리'], D.pending.map(function (b) {
+        return '<tr><td>' + when(b) + '</td><td>' + esc(b.studioId) + '<br><small>' + esc(b.location) + '</small></td><td>' + who(b) +
+          '</td><td class="wrapcell">' + esc(b.shootType) + '<br><small>' + esc(b.purpose) + '</small></td><td>' +
+          btn('확정', "confirmAs('" + b.id + "')", 'primary') + btn('시간 조정 후 확정', "openMove('" + b.id + "','confirm')") +
+          btn('반려', "openReject('" + b.id + "')", 'danger') + '</td></tr>';
+      })) : '<div class="empty">처리할 지원 요청이 없습니다.</div>';
+    }
+    if (VIEW === 'upcoming') {
+      html = '<div class="toolbar"><label class="field"><span>스튜디오</span><select id="fStudio"><option value="">전체</option>' +
+        D.studios.map(function (s) { return '<option value="' + esc(s.code) + '"' + (FILTER.studio === s.code ? ' selected' : '') + '>' + esc(s.code + ' ' + s.location) + '</option>'; }).join('') +
+        '</select></label><label class="field"><span>날짜</span><input type="date" id="fDate" value="' + esc(FILTER.date) + '"></label></div>' +
+        '<p class="hint">오늘부터 14일간의 예약입니다. 전날 마감 이후 변경·취소 요청은 여기서 처리하세요. 사전 연락이 있었다면 “취소(예외)”를 고르세요.</p>';
+      var list = D.upcoming.filter(function (b) { return (!FILTER.studio || b.studioId === FILTER.studio) && (!FILTER.date || b.date === FILTER.date); });
+      html += list.length ? table(['일시', '스튜디오', '이용자', '상태', '처리'], list.map(function (b) {
+        return '<tr><td>' + when(b) + '</td><td>' + esc(b.studioId) + '<br><small>' + esc(b.location) + '</small></td><td>' + who(b) +
+          '</td><td>' + pill(b.status) + (b.support ? '<br><small>촬영 지원</small>' : '') + '</td><td>' +
+          (b.status === '체크인' ? '<small>' + esc(b.checkinAt) + ' 체크인</small>' :
+            btn('시간 변경', "openMove('" + b.id + "','modify')") + btn('취소(노쇼)', "openCancel('" + b.id + "','noshow')", 'danger') +
+            btn('취소(예외)', "openCancel('" + b.id + "','excused')")) + '</td></tr>';
+      })) : '<div class="empty">해당하는 예약이 없습니다.</div>';
+    }
+    if (VIEW === 'noshow') {
+      html = '<section><div class="step-h" style="margin-top:18px"><h2>예약 제한 중</h2></div>' + (D.sanctions.length ? table(['이메일', '노쇼', '제한 기간', '근거 예약', '처리'],
+        D.sanctions.map(function (s) {
+          return '<tr><td>' + esc(s.email) + '</td><td class="num">' + esc(s.count) + '회</td><td>' + esc(s.from) + ' ~ ' + esc(s.until) + '</td><td>' +
+            esc(s.bookingId) + '</td><td>' + btn('제한 해제', "openLift('" + esc(s.email) + "')") + '</td></tr>';
+        })) : '<div class="empty">예약 제한 중인 이용자가 없습니다.</div>') + '</section>';
+      html += '<section><div class="step-h" style="margin-top:26px"><h2>이번 학기 노쇼</h2></div>' + (D.noShows.length ? table(['일시', '스튜디오', '이용자', '메모', '처리'],
+        D.noShows.map(function (b) {
+          return '<tr><td>' + when(b) + '</td><td>' + esc(b.studioId) + '</td><td>' + who(b) + '</td><td class="wrapcell">' + esc(b.memo) + '</td><td>' +
+            btn('노쇼 해제', "openExcuse('" + b.id + "')") + '</td></tr>';
+        })) : '<div class="empty">이번 학기 노쇼가 없습니다.</div>') + '</section>';
+    }
+    if (VIEW === 'stats') {
+      var pct = function (x) { return (Math.round(x * 1000) / 10) + '%'; };
+      var hrs = function (x) { return Math.round(x / 6) / 10; };
+      var months = [];
+      D.stats.forEach(function (r) { if (months.indexOf(r.month) === -1) months.push(r.month); });
+      html = '<p class="hint">이용률 = 체크인한 시간 ÷ 운영 가능 시간(매일 ' + fmtMin(D.config.openMin) + '~' + fmtMin(D.config.closeMin) +
+        '). 노쇼율 = 노쇼 ÷ (체크인 + 노쇼). 매일 새벽 2시에 관리 시트 ‘통계’ 탭에도 기록됩니다.</p>';
+      months.forEach(function (mo) {
+        html += '<div class="step-h" style="margin-top:20px"><h2>' + esc(mo) + '</h2></div>' +
+          table(['스튜디오', '예약 건수', '예약(시간)', '실이용(시간)', '이용률', '지원 요청 비율', '노쇼', '노쇼율'],
+            D.stats.filter(function (r) { return r.month === mo; }).map(function (r) {
+              var b = r.studio === '전체' ? ' style="font-weight:800"' : '';
+              return '<tr' + b + '><td>' + esc(r.studio) + '</td><td class="num">' + r.bookings + '</td><td class="num">' + hrs(r.reservedMin) +
+                '</td><td class="num">' + hrs(r.usedMin) + '</td><td class="num">' + pct(r.utilization) + '</td><td class="num">' + pct(r.supportRatio) +
+                '</td><td class="num">' + r.noShows + '</td><td class="num">' + pct(r.noShowRate) + '</td></tr>';
+            }));
+        var ts = (D.typeStats || []).filter(function (r) { return r.month === mo; });
+        if (ts.length) html += '<h3 style="margin:14px 0 6px;font-size:15px">이용자 구분별</h3>' +
+          table(['이용자 구분', '예약 건수', '예약(시간)', '대리 예약', '노쇼'], ts.map(function (r) {
+            var b = r.userType === '전체' ? ' style="font-weight:800"' : '';
+            return '<tr' + b + '><td>' + esc(r.userType) + '</td><td class="num">' + r.bookings + '</td><td class="num">' + hrs(r.reservedMin) +
+              '</td><td class="num">' + r.proxy + '</td><td class="num">' + r.noShows + '</td></tr>';
+          }));
+      });
+    }
+    if (VIEW === 'qr') {
+      var noUrl = D.studios.some(function (s) { return !s.checkinUrl; });
+      html = '<div class="toolbar no-print"><button class="btn primary" onclick="window.print()">인쇄하기</button>' +
+        '<p class="hint" style="margin:0">스튜디오 출입문 옆에 붙여 주세요. QR이 유출되면 Apps Script에서 rotateQrKeys()를 실행한 뒤 다시 인쇄하세요.</p></div>' +
+        (noUrl ? '<div class="note warn">웹앱을 배포한 뒤에 QR이 만들어집니다.</div>' : '') +
+        '<div class="qr-grid">' + D.studios.filter(function (s) { return s.active; }).map(function (s) {
+          return '<div class="qr-card"><div class="eyebrow">HY FLIP 셀프스튜디오 체크인</div><div class="qr" data-url="' + esc(s.checkinUrl) + '"></div>' +
+            '<h3>' + esc(s.code) + '</h3><p><b>' + esc(s.location) + '</b></p><p>휴대폰 카메라로 찍고 학교 계정으로 로그인 → “체크인”</p>' +
+            '<p>시작 후 60분 안에 체크인하지 않으면 노쇼 · 문의 내선 ' + esc(s.ext) + '</p></div>';
+        }).join('') + '</div>';
+    }
+    m.innerHTML = html;
+    if (VIEW === 'upcoming') {
+      $('#fStudio').addEventListener('change', function (e) { FILTER.studio = e.target.value; render(); });
+      $('#fDate').addEventListener('change', function (e) { FILTER.date = e.target.value; render(); });
+    }
+    if (VIEW === 'qr') drawQr();
+  }
+
+  function drawQr() {
+    $$('.qr').forEach(function (el) {
+      var url = el.dataset.url;
+      if (!url) return;
+      if (typeof qrcode === 'undefined') { el.innerHTML = '<p class="note err">QR 라이브러리를 불러오지 못했습니다.</p><small>' + esc(url) + '</small>'; return; }
+      var q = qrcode(0, 'M'); q.addData(url); q.make();
+      el.innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+    });
+  }
+
+  /* ---------- 대화상자 ---------- */
+  function find(id) {
+    return D.pending.concat(D.upcoming, D.noShows).filter(function (b) { return b.id === id; })[0];
+  }
+  function dialog(title, body, okLabel, onOk) {
+    $('#dlgTitle').textContent = title;
+    $('#dlgBody').innerHTML = body;
+    $('#dlgErr').hidden = true;
+    $('#dlgOk').textContent = okLabel;
+    var dlg = $('#dlg');
+    $('#dlgForm').onsubmit = function (ev) {
+      if (ev.submitter && ev.submitter.value === 'cancel') return;
+      ev.preventDefault();
+      var ok = $('#dlgOk'); ok.disabled = true;
+      Promise.resolve().then(onOk).then(function () { dlg.close(); toast('처리했습니다. 이용자에게 메일을 보냈습니다.'); load(); })
+        .catch(function (e) { $('#dlgErr').hidden = false; $('#dlgErr').textContent = e.message; })
+        .then(function () { ok.disabled = false; });
+    };
+    dlg.showModal();
+  }
+  function summaryLine(b) { return '<p class="hint">' + esc(b.id) + ' · ' + esc(b.name) + ' · ' + esc(b.dateLabel) + ' ' + esc(b.start) + '–' + esc(b.end) + ' · ' + esc(b.studioId) + '</p>'; }
+  function memoField(label, req) {
+    return '<label class="field"><span>' + label + (req ? '<span class="req">*</span>' : '') + '</span><textarea id="memo" rows="3"' + (req ? ' required' : '') + '></textarea></label>';
+  }
+  function timeOptions(sel, isEnd) {
+    var o = '', c = D.config;
+    for (var m = c.openMin + (isEnd ? 30 : 0); m <= c.closeMin - (isEnd ? 0 : 30); m += c.slotMin) {
+      o += '<option value="' + m + '"' + (m === sel ? ' selected' : '') + '>' + fmtMin(m) + '</option>';
+    }
+    return o;
+  }
+
+  function confirmAs(id) {
+    var b = find(id);
+    if (!confirm(b.name + '님 ' + b.dateLabel + ' ' + b.start + '–' + b.end + ' 촬영 지원 예약을 확정할까요?')) return;
+    api('apiAdminConfirm', id, null).then(function () { toast('확정했습니다. 이용자에게 메일을 보냈습니다.'); load(); }).catch(function (e) { alert(e.message); });
+  }
+  function openMove(id, mode) {
+    var b = find(id);
+    dialog(mode === 'confirm' ? '시간 조정 후 확정' : '예약 시간 변경', summaryLine(b) +
+      '<label class="field"><span>스튜디오</span><select id="mStudio">' + D.studios.map(function (s) {
+        return '<option value="' + esc(s.code) + '"' + (s.code === b.studioId ? ' selected' : '') + '>' + esc(s.code + ' ' + s.location) + '</option>';
+      }).join('') + '</select></label><label class="field"><span>날짜</span><input type="date" id="mDate" value="' + esc(b.date) + '"></label>' +
+      '<div class="row2"><label class="field"><span>시작</span><select id="mStart">' + timeOptions(b.startMin, false) + '</select></label>' +
+      '<label class="field"><span>종료</span><select id="mEnd">' + timeOptions(b.endMin, true) + '</select></label></div>' + memoField('메모(메일에 사유로 포함)'),
+      mode === 'confirm' ? '변경 후 확정' : '변경 저장', function () {
+        var ch = { studioId: $('#mStudio').value, date: $('#mDate').value, startMin: Number($('#mStart').value), endMin: Number($('#mEnd').value), memo: $('#memo').value };
+        return api(mode === 'confirm' ? 'apiAdminConfirm' : 'apiAdminModify', id, ch);
+      });
+  }
+  function openReject(id) {
+    dialog('지원 요청 반려', summaryLine(find(id)) + memoField('반려 사유(메일에 포함)', true), '반려', function () {
+      return api('apiAdminReject', id, $('#memo').value);
+    });
+  }
+  function openCancel(id, mode) {
+    dialog(mode === 'noshow' ? '취소 — 노쇼로 처리' : '취소 — 예외(노쇼 아님)', summaryLine(find(id)) +
+      (mode === 'noshow' ? '<div class="note warn">노쇼 1회가 기록되고, 학기 누적 기준에 도달하면 예약 제한이 자동 적용됩니다.</div>' :
+        '<div class="note info">사전 연락 등 정당한 사유가 있을 때 고르세요. 노쇼로 기록되지 않습니다.</div>') + memoField('메모'),
+      '취소 처리', function () { return api('apiAdminCancel', id, mode, $('#memo').value); });
+  }
+  function openExcuse(id) {
+    dialog('노쇼 해제', summaryLine(find(id)) + '<div class="note info">이 노쇼로 걸린 예약 제한이 있으면 함께 해제됩니다.</div>' + memoField('해제 사유', true), '해제', function () {
+      return api('apiAdminExcuse', id, $('#memo').value);
+    });
+  }
+  function openLift(email) {
+    dialog('예약 제한 해제', '<p class="hint">' + esc(email) + '</p>' + memoField('해제 사유', true), '해제', function () {
+      return api('apiAdminLiftSanction', email, $('#memo').value);
+    });
+  }
+
+  load();
+</script>
+</body>
+</html>

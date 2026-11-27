@@ -1,0 +1,50 @@
+<script>
+  /* 화면 공통 도우미 */
+  function api(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (resolve, reject) {
+      var r = google.script.run.withSuccessHandler(resolve).withFailureHandler(function (e) {
+        reject(new Error(String((e && e.message) || e).replace(/^Error:\s*/, '').replace(/^Exception:\s*/, '')));
+      });
+      r[fn].apply(r, args);
+    });
+  }
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function esc(s) {
+    return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function fmtMin(m) { return pad2(Math.floor(m / 60)) + ':' + pad2(m % 60); }
+  function toMin(s) { var p = String(s).split(':'); return Number(p[0]) * 60 + Number(p[1] || 0); }
+  function dur(m) { var h = Math.floor(m / 60), r = m % 60; return (h ? h + '시간' : '') + (h && r ? ' ' : '') + (r ? r + '분' : '') || '0분'; }
+  function weekdayOf(d) { var p = d.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).getUTCDay(); }
+  function koDate(d) {
+    if (!d) return '';
+    var p = d.split('-');
+    return Number(p[1]) + '월 ' + Number(p[2]) + '일(' + '일월화수목금토'[weekdayOf(d)] + ')';
+  }
+  function addDays(d, n) {
+    var p = d.split('-');
+    var t = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]) + n * 86400000);
+    return t.getUTCFullYear() + '-' + pad2(t.getUTCMonth() + 1) + '-' + pad2(t.getUTCDate());
+  }
+  function pillClass(status) { return String(status).split(' ')[0]; }
+  function pill(status) {
+    var cls = ['확정', '체크인', '담당자', '노쇼'].indexOf(pillClass(status)) !== -1 && status !== '노쇼 해제' ? pillClass(status) : 'muted';
+    return '<span class="pill ' + cls + '">' + esc(status) + '</span>';
+  }
+  var _toastTimer;
+  function toast(msg) {
+    var t = $('#toast');
+    if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function () { t.hidden = true; }, 3200);
+  }
+  function link(page) { return BOOT.url ? BOOT.url + (page ? '?p=' + page : '') : '?p=' + page; }
+  /* Apps Script 웹앱은 iframe 안에서 열리므로 페이지 이동은 top 창에서 */
+  function go(page) { window.top.location.href = link(page); }
+</script>

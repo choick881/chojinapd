@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <?!= include('ui/Styles'); ?>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">HY FLIP · 셀프스튜디오</div>
+    <h1 id="title">체크인</h1>
+    <div class="who" id="who"></div>
+  </header>
+  <main id="body" aria-live="polite"><div class="loading">예약을 확인하는 중…</div></main>
+</div>
+
+<script>var BOOT = <?!= boot ?>;</script>
+<?!= include('ui/Common'); ?>
+<script>
+  function render(d) {
+    $('#title').textContent = d.studio.code + ' ' + d.studio.location;
+    $('#who').textContent = d.email + ' 계정';
+    var b = d.booking, html = '';
+    if (d.canCheckin) {
+      html = '<div class="big-status">예약을 찾았습니다</div>' + card(b) +
+        '<button class="btn primary" style="width:100%;min-height:58px;font-size:18px" id="go" onclick="doCheckin()">지금 체크인하기</button>';
+    } else {
+      html = '<div class="big-status">체크인할 수 없습니다</div><div class="note err">' + esc(d.reason) + '</div>' + (b ? card(b) : '') +
+        '<p class="hint">문의: 스튜디오 내선 ' + esc(d.studio.ext) + '</p>' +
+        '<a class="btn" href="#" onclick="go(\'my\'); return false;">내 예약 보기</a>';
+    }
+    $('#body').innerHTML = html;
+  }
+  function card(b) {
+    return '<article class="card"><div>' + pill(b.status) + '</div><div class="when" style="margin-top:8px">' + esc(b.dateLabel) + ' ' +
+      esc(b.start) + '–' + esc(b.end) + '</div><dl><dt>예약번호</dt><dd>' + esc(b.id) + '</dd><dt>이용자</dt><dd>' + esc(b.name) +
+      ' (' + esc(b.orgName) + ')</dd>' + (b.checkinAt ? '<dt>체크인</dt><dd>' + esc(b.checkinAt) + '</dd>' : '') + '</dl></article>';
+  }
+  function doCheckin() {
+    var btn = $('#go'); btn.disabled = true; btn.textContent = '처리 중…';
+    api('apiCheckin', BOOT.st, BOOT.k).then(function (b) {
+      $('#body').innerHTML = '<div class="big-status" style="color:var(--accent)">체크인 완료</div>' +
+        '<p class="hint">촬영을 마치면 장비 전원을 끄고 정리해 주세요. 종료 시각 ' + esc(b.end) + '</p>' + card(b);
+    }).catch(function (e) {
+      $('#body').insertAdjacentHTML('afterbegin', '<div class="note err">' + esc(e.message) + '</div>');
+      btn.disabled = false; btn.textContent = '다시 시도';
+    });
+  }
+  if (!BOOT.st || !BOOT.k) {
+    $('#body').innerHTML = '<div class="note err">QR 코드 정보가 없습니다. 스튜디오에 붙은 QR을 다시 찍어 주세요.</div>';
+  } else {
+    api('apiCheckinPreview', BOOT.st, BOOT.k).then(render).catch(function (e) {
+      $('#body').innerHTML = '<div class="note err">' + esc(e.message) + '</div>';
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <?!= include('ui/Styles'); ?>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">HY FLIP · 에듀테크혁신팀</div>
+    <h1>셀프스튜디오 예약</h1>
+    <p class="hint intro" id="intro">학교 구글 계정이면 교수·강사·직원·조교 누구나 예약할 수 있습니다. 플립러닝 개발 선정 교수는 더 먼 날짜까지 먼저 예약할 수 있습니다.</p>
+    <div class="who" id="who">계정 확인 중…</div>
+    <nav class="tabs" role="tablist" aria-label="화면 선택">
+      <button class="tab" role="tab" id="tab-book" aria-selected="true" onclick="show('book')">예약하기</button>
+      <button class="tab" role="tab" id="tab-my" aria-selected="false" onclick="show('my')">내 예약</button>
+      <a class="tab" id="tab-admin" href="#" hidden onclick="go('admin'); return false;">담당자 화면</a>
+    </nav>
+  </header>
+
+  <main>
+    <div id="fatal" class="note err" hidden></div>
+
+    <!-- 예약하기 -->
+    <section id="view-book" aria-labelledby="tab-book">
+      <div id="sanction" class="note err" hidden></div>
+      <div id="replacing" class="note warn" hidden></div>
+
+      <section class="step">
+        <div class="step-h"><span class="step-no">01</span><h2>스튜디오 선택</h2></div>
+        <div class="studios" id="studios" role="radiogroup" aria-label="스튜디오"><div class="loading">불러오는 중…</div></div>
+      </section>
+
+      <section class="step">
+        <div class="step-h"><span class="step-no">02</span><h2>날짜와 시간</h2></div>
+        <label class="support">
+          <input type="checkbox" id="support">
+          <span><b>촬영 지원이 필요합니다</b><br>
+            <span class="hint" id="supportHint">담당자 근무시간(평일)만 선택할 수 있고, 담당자가 확인한 뒤 확정됩니다.</span></span>
+        </label>
+        <label class="field"><span>이용 날짜<span class="req">*</span></span>
+          <input type="date" id="date" required>
+        </label>
+        <div id="dateNote" class="note warn" hidden></div>
+        <p class="hint">시작 칸을 누른 뒤 마지막 칸을 누르면 그 사이가 선택됩니다. (30분 단위)</p>
+        <div class="legend" aria-hidden="true">
+          <span><i style="background:var(--paper)"></i>예약 가능</span>
+          <span><i style="background:var(--busy)"></i>예약됨</span>
+          <span><i style="background:var(--pending-soft)"></i>확인 중</span>
+          <span><i style="background:var(--accent-soft)"></i>내 다른 예약</span>
+          <span><i style="background:var(--accent)"></i>선택</span>
+        </div>
+        <div class="slots" id="slots" aria-live="polite"><div class="empty">스튜디오와 날짜를 먼저 골라 주세요.</div></div>
+        <div class="usage" id="usage" hidden></div>
+      </section>
+
+      <section class="step">
+        <div class="step-h"><span class="step-no">03</span><h2>이용자 정보</h2></div>
+        <div class="row2">
+          <label class="field"><span>성명<span class="req">*</span></span><input type="text" id="name" autocomplete="name" maxlength="30" required></label>
+          <label class="field"><span>소속<span class="req">*</span></span><input type="text" id="org" placeholder="예) 경영대학 경영학부" maxlength="60" required></label>
+        </div>
+        <label class="field"><span>이메일 (로그인 계정)</span><input type="email" id="email" readonly></label>
+        <div class="field"><span>이용자 구분<span class="req">*</span></span><div class="chips" id="userTypes" role="radiogroup" aria-label="이용자 구분"></div></div>
+        <label class="check"><input type="checkbox" id="proxy"><span><b>교수님 대신 예약합니다</b> (학과·개인 조교, 직원)<br>
+          <span class="hint">교수님 이메일을 넣으면 확정·노쇼 메일이 교수님께도 가고, 교수님 계정으로도 체크인·취소할 수 있습니다. 선정 교수님이면 우선 예약 기간이 적용됩니다.</span></span></label>
+        <div id="proxyBox" hidden>
+          <label class="field"><span>교수님 이메일<span class="req">*</span></span><input type="email" id="onBehalf" placeholder="예) professor@hanyang.ac.kr" maxlength="80" autocomplete="off"></label>
+          <div id="proxyNote" class="note info" hidden></div>
+          <p class="hint">하루 이용 한도·노쇼·예약 제한은 지금 로그인한 계정 기준으로 적용됩니다.</p>
+        </div>
+        <label class="field"><span>촬영 유형<span class="req">*</span></span><select id="shootType" required></select></label>
+        <div class="field"><span>용도<span class="req">*</span></span><div class="chips" id="purposes" role="radiogroup" aria-label="용도"></div></div>
+      </section>
+
+      <section class="step">
+        <div class="step-h"><span class="step-no">04</span><h2>동의</h2></div>
+        <label class="check"><input type="checkbox" id="agreePrivacy"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다.</span></label>
+        <details>
+          <summary>내용 보기</summary>
+          <table>
+            <tr><th>목적</th><td>셀프스튜디오 예약 관리(확정·변경 안내, 체크인·노쇼 관리), 이용 통계</td></tr>
+            <tr><th>항목</th><td>성명, 소속, 이용자 구분, 이메일 (대리 예약 시 교수님 이메일)</td></tr>
+            <tr><th>보유 기간</th><td>해당 학기 종료일로부터 2년 보관 후 지체 없이 파기</td></tr>
+            <tr><th>거부 권리</th><td>동의를 거부할 수 있으나, 거부 시 예약이 불가합니다.</td></tr>
+            <tr><th>열람·정정·삭제</th><td>교육혁신처 에듀테크혁신팀(HY FLIP 담당)에 요청</td></tr>
+          </table>
+        </details>
+        <label class="check"><input type="checkbox" id="agreeRules"><span><b>[필수]</b> 이용 수칙과 야간 이용 책임에 동의합니다.</span></label>
+        <details>
+          <summary>이용 수칙 보기</summary>
+          <ol id="rulesList"></ol>
+        </details>
+        <div id="formErr" class="note err" hidden role="alert"></div>
+      </section>
+    </section>
+
+    <!-- 완료 -->
+    <section id="view-done" hidden aria-live="polite"></section>
+
+    <!-- 내 예약 -->
+    <section id="view-my" hidden aria-labelledby="tab-my">
+      <div id="myBody"><div class="loading">불러오는 중…</div></div>
+    </section>
+  </main>
+</div>
+
+<div class="dock" id="dock">
+  <div class="in">
+    <div class="sum" id="sum"><b>시간을 선택해 주세요</b><span id="sumSub">스튜디오 · 날짜 · 시간</span></div>
+    <button class="btn primary" id="submit" disabled onclick="submitBooking()">예약하기</button>
+  </div>
+</div>
+
+<script>var BOOT = <?!= boot ?>;</script>
+<?!= include('ui/Common'); ?>
+<?!= include('ui/AppJs'); ?>
+</body>
+</html>
